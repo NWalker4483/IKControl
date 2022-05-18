@@ -19,6 +19,7 @@ const int Output40 = 40;
 const int Output41 = 41;
 
 AR4 robot;
+IkController controller(robot);
 
 void setup()
 {

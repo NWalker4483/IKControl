@@ -6172,11 +6172,20 @@ void loop() {
 
 class IkController {
 
+IkController(MultiAxis<6> &bot){
+
+}
+
+void SolveFowardKinematic(){
+    for (){}
+    JangleIn
+}
+
 void move(type){
 
     "ARC"
     "LIN"
-    
+
 }
 
 }

@@ -48,8 +48,8 @@
 #include <Encoder.h>
 
 #define ROBOT_nDOFs 6
-#define CALIB_SPEED 1 // deg/s
-#define WIGGLE_FACTOR 15
+#define CALIB_SPEED 1    // deg/s
+#define WIGGLE_FACTOR 15 // stepss
 
 // Setup Steppers
 AccelStepper stepper1(0, 1);
@@ -122,7 +122,7 @@ public:
             axis[i].setResolution(WIGGLE_FACTOR * (1L / step_deg[i]));
 
         tool.setLimits(0, 3450);
-        tool.setResolution((1L / tool_step_deg) * WIGGLE_FACTOR);
+        tool.setResolution(WIGGLE_FACTOR * (1L / tool_step_deg));
 
         for (int i = 0; i < ROBOT_nDOFs; i++)
             pinMode(calib_pins[i], INPUT);
@@ -130,6 +130,13 @@ public:
 
     void calibrate()
     {
+        // SET CAL DIRECTION
+        digitalWrite(J1dirPin, HIGH);
+        digitalWrite(J2dirPin, HIGH);
+        digitalWrite(J3dirPin, LOW);
+        digitalWrite(J4dirPin, LOW);
+        digitalWrite(J5dirPin, HIGH);
+        digitalWrite(J6dirPin, LOW);
         // setLimitMode(-1);
 
         calib_offsets
@@ -141,10 +148,10 @@ public:
 
     void computeAxisPositions(double *axis_positions)
     {
+        J1EncSteps = encoders[i]->read() / enc_mult[i];
+
         for (int i = 0; i < 6; i++)
             *(axis_positions) = (steppers[i]->currentPosition() / step_deg[i]);
-
-        // J1EncSteps = encoders[i]->read() / enc_mult[i];
 
         // Check for collisions
         int TotalCollision = 0;
@@ -191,9 +198,7 @@ private:
         {
             J1collisionTrue = 1;
         }
-        ...
-        ...
-        ...
+        .........
     }
 
     void resetEncoders()

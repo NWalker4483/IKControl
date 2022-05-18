@@ -1,3 +1,3 @@
 # IkControl : Inverse Kinematic using AxisControl 
 
-Rewriting the arb4 code for readability 
+Rewriting the AR4 code for readability and adaptability
