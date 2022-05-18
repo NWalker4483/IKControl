@@ -2,50 +2,6 @@
 void setup() {
   // run once:
   Serial.begin(9600);
-
-  pinMode(TRstepPin, OUTPUT);
-  pinMode(TRdirPin, OUTPUT);
-  pinMode(J1stepPin, OUTPUT);
-  pinMode(J1dirPin, OUTPUT);
-  pinMode(J2stepPin, OUTPUT);
-  pinMode(J2dirPin, OUTPUT);
-  pinMode(J3stepPin, OUTPUT);
-  pinMode(J3dirPin, OUTPUT);
-  pinMode(J4stepPin, OUTPUT);
-  pinMode(J4dirPin, OUTPUT);
-  pinMode(J5stepPin, OUTPUT);
-  pinMode(J5dirPin, OUTPUT);
-  pinMode(J6stepPin, OUTPUT);
-  pinMode(J6dirPin, OUTPUT);
-
-  pinMode(J1calPin, INPUT);
-  pinMode(J2calPin, INPUT);
-  pinMode(J3calPin, INPUT);
-  pinMode(J4calPin, INPUT);
-  pinMode(J5calPin, INPUT);
-  pinMode(J6calPin, INPUT);
-
-  pinMode(Input32, INPUT_PULLUP);
-  pinMode(Input33, INPUT_PULLUP);
-  pinMode(Input34, INPUT_PULLUP);
-  pinMode(Input35, INPUT_PULLUP);
-  pinMode(Input36, INPUT_PULLUP);
-
-  pinMode(Output37, OUTPUT);
-  pinMode(Output38, OUTPUT);
-  pinMode(Output39, OUTPUT);
-  pinMode(Output40, OUTPUT);
-  pinMode(Output41, OUTPUT);
-
-
-  digitalWrite(TRstepPin, HIGH);
-  digitalWrite(J1stepPin, HIGH);
-  digitalWrite(J2stepPin, HIGH);
-  digitalWrite(J3stepPin, HIGH);
-  digitalWrite(J4stepPin, HIGH);
-  digitalWrite(J5stepPin, HIGH);
-  digitalWrite(J6stepPin, HIGH);
-
 }
 
 

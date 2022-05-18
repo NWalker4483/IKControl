@@ -1,6 +1,7 @@
 
 
 #include <avr/pgmspace.h>
+#include <math.h>
 
 #define ROBOT_nDOFs 6
 typedef float tRobotJoints[ROBOT_nDOFs];
@@ -31,8 +32,6 @@ float DHparams[6][4] = {
   {    0,     90,       0,      0  },
   {  180,    -90,   36.25,      0  }
 };
-
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //MATRIX OPERATION
