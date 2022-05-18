@@ -49,10 +49,10 @@
 #include <Encoder.h>
 
 #define ROBOT_nDOFs 6
-#define CALIB_SPEED 3    // deg/s
-#define BACKOFF_DIST 1   // degs
-#define OVERDRIVE_TIME .25   // seconds
-#define WIGGLE_FACTOR 15 // stepss
+#define CALIB_SPEED 3      // deg/s
+#define BACKOFF_DIST 3     // degs
+#define OVERDRIVE_TIME .25 // seconds
+#define WIGGLE_FACTOR 15   // stepss
 
 // Setup Joint Steppers
 AxisStepper stepper1(0, 1);
@@ -78,6 +78,16 @@ class AR4 : public MultiAxis<ROBOT_nDOFs>
 {
 
 public:
+    const float DHparams[ROBOT_nDOFs][4] = {
+        {0, 0, 169.77, 0},
+        {-90, -90, 0, 64.2},
+        {0, 0, 0, 305},
+        {0, -90, 222.63, 0},
+        {0, 90, 0, 0},
+        {180, -90, 36.25, 0}};
+    
+    AxisStepper *steppers[ROBOT_nDOFs];
+    Encoder *encoders[ROBOT_nDOFs];
     AxisStepper tool(12, 13);
     // AxisStepper track(12, 13);
     bool collision_states[ROBOT_nDOFs];
@@ -152,13 +162,13 @@ public:
 
         runToPositions();
 
-        axis[0].setTargetSpeed(CALIB_SPEED/2.);
-        axis[1].setTargetSpeed(CALIB_SPEED/2.);
-        axis[2].setTargetSpeed(-CALIB_SPEED/2.);
-        axis[3].setTargetSpeed(-CALIB_SPEED/2.);
-        axis[4].setTargetSpeed(CALIB_SPEED/2.);
-        axis[5].setTargetSpeed(-CALIB_SPEED/2.);
-        
+        axis[0].setTargetSpeed(CALIB_SPEED / 2.);
+        axis[1].setTargetSpeed(CALIB_SPEED / 2.);
+        axis[2].setTargetSpeed(-CALIB_SPEED / 2.);
+        axis[3].setTargetSpeed(-CALIB_SPEED / 2.);
+        axis[4].setTargetSpeed(CALIB_SPEED / 2.);
+        axis[5].setTargetSpeed(-CALIB_SPEED / 2.);
+
         driveLimits();
 
         // Overdrive at half speed
@@ -166,7 +176,6 @@ public:
         unsigned int start_time = millis();
         unsigned int drive_time = 1000L * OVERDRIVE_TIME;
 
- 
         delay(500);
 
         // Apply Calibration Offsets
@@ -187,14 +196,14 @@ public:
 
     void driveLimits(bool MOVE_J1, bool MOVE_J2, bool MOVE_J3, bool MOVE_J4, bool MOVE_J5, bool MOVE_J6)
     {
-        bool is_active[ROBOT_nDOFs] = {}
-        disableTargetTracking();
+        bool is_active[ROBOT_nDOFs] = {} disableTargetTracking();
         while ()
         {
-            for (int i = 0; i < ROBOT_nDOFs; i++) {
-                if () // Not At switch 
+            for (int i = 0; i < ROBOT_nDOFs; i++)
+            {
+                if () // Not At switch
 
-                axis[i].run();
+                    axis[i].run();
             }
         }
 
@@ -225,10 +234,7 @@ public:
         tool.pollMotor();
         // track.pollMotor();
     };
-
-    AxisStepper *steppers[ROBOT_nDOFs];
-    Encoder *encoders[ROBOT_nDOFs];
-
+    
     // void resetEncoders()
     // {
     //     // set encoders to current position

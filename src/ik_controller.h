@@ -135,7 +135,6 @@ float *Robot_JointLimits_Lower = Robot_Data + 9 * Table_Size;
 float *Robot_Senses = Robot_Data + 10 * Table_Size;
 
 // A value mappings
-
 float *Robot_Kin_DHM_L1 = Robot_Kin_DHM_Table + 0 * Table_Size;
 float *Robot_Kin_DHM_L2 = Robot_Kin_DHM_Table + 1 * Table_Size;
 float *Robot_Kin_DHM_L3 = Robot_Kin_DHM_Table + 2 * Table_Size;
@@ -761,56 +760,6 @@ void inverse_kinematics_raw(const T pose[16], const tRobot DK, const T joints_ap
 // CALCULATE POSITIONS
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void robot_data_grab()
-{
-    robot_data_reset();
-
-    // Alpha parameters
-    Robot_Kin_DHM_L1[DHM_Alpha] = DHparams[0][1] * M_PI / 180;
-    Robot_Kin_DHM_L2[DHM_Alpha] = DHparams[1][1] * M_PI / 180;
-    Robot_Kin_DHM_L3[DHM_Alpha] = DHparams[2][1] * M_PI / 180;
-    Robot_Kin_DHM_L4[DHM_Alpha] = DHparams[3][1] * M_PI / 180;
-    Robot_Kin_DHM_L5[DHM_Alpha] = DHparams[4][1] * M_PI / 180;
-    Robot_Kin_DHM_L6[DHM_Alpha] = DHparams[5][1] * M_PI / 180;
-
-    // Theta parameters
-    Robot_Kin_DHM_L1[DHM_Theta] = DHparams[0][0] * M_PI / 180;
-    Robot_Kin_DHM_L2[DHM_Theta] = DHparams[1][0] * M_PI / 180;
-    Robot_Kin_DHM_L3[DHM_Theta] = DHparams[2][0] * M_PI / 180;
-    Robot_Kin_DHM_L4[DHM_Theta] = DHparams[3][0] * M_PI / 180;
-    Robot_Kin_DHM_L5[DHM_Theta] = DHparams[4][0] * M_PI / 180;
-    Robot_Kin_DHM_L6[DHM_Theta] = DHparams[5][0] * M_PI / 180;
-
-    // A parameters
-    Robot_Kin_DHM_L1[DHM_A] = DHparams[0][3];
-    Robot_Kin_DHM_L2[DHM_A] = DHparams[1][3];
-    Robot_Kin_DHM_L3[DHM_A] = DHparams[2][3];
-    Robot_Kin_DHM_L4[DHM_A] = DHparams[3][3];
-    Robot_Kin_DHM_L5[DHM_A] = DHparams[4][3];
-    Robot_Kin_DHM_L6[DHM_A] = DHparams[5][3];
-
-    // D parameters
-    Robot_Kin_DHM_L1[DHM_D] = DHparams[0][2];
-    Robot_Kin_DHM_L2[DHM_D] = DHparams[1][2];
-    Robot_Kin_DHM_L3[DHM_D] = DHparams[2][2];
-    Robot_Kin_DHM_L4[DHM_D] = DHparams[3][2];
-    Robot_Kin_DHM_L5[DHM_D] = DHparams[4][2];
-    Robot_Kin_DHM_L6[DHM_D] = DHparams[5][2];
-
-    Robot_JointLimits_Lower[0] = J1axisLimNeg;
-    Robot_JointLimits_Upper[0] = J1axisLimPos;
-    Robot_JointLimits_Lower[1] = J2axisLimNeg;
-    Robot_JointLimits_Upper[1] = J2axisLimPos;
-    Robot_JointLimits_Lower[2] = J3axisLimNeg;
-    Robot_JointLimits_Upper[2] = J3axisLimPos;
-    Robot_JointLimits_Lower[3] = J4axisLimNeg;
-    Robot_JointLimits_Upper[3] = J4axisLimPos;
-    Robot_JointLimits_Lower[4] = J5axisLimNeg;
-    Robot_JointLimits_Upper[4] = J5axisLimPos;
-    Robot_JointLimits_Lower[5] = J6axisLimNeg;
-    Robot_JointLimits_Upper[5] = J6axisLimPos;
-}
-
 void robot_data_reset()
 {
     // Reset user base and tool frames
@@ -845,21 +794,15 @@ bool robot_joints_valid(const T joints[ROBOT_nDOFs])
 }
 
 void correctRobotPos()
-// Calculate robot tip position 
+// Calculate robot tip position
 {
-    J1StepM = J1encPos.read() / J1encMult;
-    J2StepM = J2encPos.read() / J2encMult;
-    J3StepM = J3encPos.read() / J3encMult;
-    J4StepM = J4encPos.read() / J4encMult;
-    J5StepM = J5encPos.read() / J5encMult;
-    J6StepM = J6encPos.read() / J6encMult;
-
-    JangleIn[0] = (J1StepM - J1zeroStep) / J1StepDeg;
-    JangleIn[1] = (J2StepM - J2zeroStep) / J2StepDeg;
-    JangleIn[2] = (J3StepM - J3zeroStep) / J3StepDeg;
-    JangleIn[3] = (J4StepM - J4zeroStep) / J4StepDeg;
-    JangleIn[4] = (J5StepM - J5zeroStep) / J5StepDeg;
-    JangleIn[5] = (J6StepM - J6zeroStep) / J6StepDeg;
+    // robot.run();
+    JangleIn[0] = robot.axis[0].currentPosition();
+    JangleIn[1] = robot.axis[1].currentPosition();
+    JangleIn[2] = robot.axis[2].currentPosition();
+    JangleIn[3] = robot.axis[3].currentPosition();
+    JangleIn[4] = robot.axis[4].currentPosition();
+    JangleIn[5] = robot.axis[5].currentPosition();
 
     SolveFowardKinematic();
 }
@@ -1016,8 +959,6 @@ void driveMotorsJ(int J1step, int J2step, int J3step, int J4step, int J5step, in
 
     float speedSP;
     float moveDist;
-
-    // int J4EncSteps;
 
     /////CALC SPEEDS//////
     float calcStepGap;
@@ -1177,400 +1118,10 @@ void driveMotorsJ(int J1step, int J2step, int J3step, int J4step, int J5step, in
                 J1_SE_2cur = 0;
             }
         }
-
-        /////// J2 ////////////////////////////////
-        /// find pulse every
-        if (J2cur < J2step)
-        {
-            J2_PE = (HighStep / J2step);
-            /// find left over 1
-            J2_LO_1 = (HighStep - (J2step * J2_PE));
-            /// find skip 1
-            if (J2_LO_1 > 0)
-            {
-                J2_SE_1 = (HighStep / J2_LO_1);
-            }
-            else
-            {
-                J2_SE_1 = 0;
-            }
-            /// find left over 2
-            if (J2_SE_1 > 0)
-            {
-                J2_LO_2 = HighStep - ((J2step * J2_PE) + ((J2step * J2_PE) / J2_SE_1));
-            }
-            else
-            {
-                J2_LO_2 = 0;
-            }
-            /// find skip 2
-            if (J2_LO_2 > 0)
-            {
-                J2_SE_2 = (HighStep / J2_LO_2);
-            }
-            else
-            {
-                J2_SE_2 = 0;
-            }
-            /////////  J2  ///////////////
-            if (J2_SE_2 == 0)
-            {
-                J2_SE_2cur = (J2_SE_2 + 1);
-            }
-            if (J2_SE_2cur != J2_SE_2)
-            {
-                J2_SE_2cur = ++J2_SE_2cur;
-                if (J2_SE_1 == 0)
-                {
-                    J2_SE_1cur = (J2_SE_1 + 1);
-                }
-                if (J2_SE_1cur != J2_SE_1)
-                {
-                    J2_SE_1cur = ++J2_SE_1cur;
-                    J2_PEcur = ++J2_PEcur;
-                    if (J2_PEcur == J2_PE)
-                    {
-                        J2cur = ++J2cur;
-                        J2_PEcur = 0;
-                        digitalWrite(J2stepPin, LOW);
-                        delayMicroseconds(distDelay);
-                        disDelayCur = disDelayCur + distDelay;
-                        if (J2dir == 0)
-                        {
-                            J2StepM == --J2StepM;
-                        }
-                        else
-                        {
-                            J2StepM == ++J2StepM;
-                        }
-                    }
-                }
-                else
-                {
-                    J2_SE_1cur = 0;
-                }
-            }
-            else
-            {
-                J2_SE_2cur = 0;
-            }
-        }
-
-        /////// J3 ////////////////////////////////
-        /// find pulse every
-        if (J3cur < J3step)
-        {
-            J3_PE = (HighStep / J3step);
-            /// find left over 1
-            J3_LO_1 = (HighStep - (J3step * J3_PE));
-            /// find skip 1
-            if (J3_LO_1 > 0)
-            {
-                J3_SE_1 = (HighStep / J3_LO_1);
-            }
-            else
-            {
-                J3_SE_1 = 0;
-            }
-            /// find left over 2
-            if (J3_SE_1 > 0)
-            {
-                J3_LO_2 = HighStep - ((J3step * J3_PE) + ((J3step * J3_PE) / J3_SE_1));
-            }
-            else
-            {
-                J3_LO_2 = 0;
-            }
-            /// find skip 2
-            if (J3_LO_2 > 0)
-            {
-                J3_SE_2 = (HighStep / J3_LO_2);
-            }
-            else
-            {
-                J3_SE_2 = 0;
-            }
-            /////////  J3  ///////////////
-            if (J3_SE_2 == 0)
-            {
-                J3_SE_2cur = (J3_SE_2 + 1);
-            }
-            if (J3_SE_2cur != J3_SE_2)
-            {
-                J3_SE_2cur = ++J3_SE_2cur;
-                if (J3_SE_1 == 0)
-                {
-                    J3_SE_1cur = (J3_SE_1 + 1);
-                }
-                if (J3_SE_1cur != J3_SE_1)
-                {
-                    J3_SE_1cur = ++J3_SE_1cur;
-                    J3_PEcur = ++J3_PEcur;
-                    if (J3_PEcur == J3_PE)
-                    {
-                        J3cur = ++J3cur;
-                        J3_PEcur = 0;
-                        digitalWrite(J3stepPin, LOW);
-                        delayMicroseconds(distDelay);
-                        disDelayCur = disDelayCur + distDelay;
-                        if (J3dir == 0)
-                        {
-                            J3StepM == --J3StepM;
-                        }
-                        else
-                        {
-                            J3StepM == ++J3StepM;
-                        }
-                    }
-                }
-                else
-                {
-                    J3_SE_1cur = 0;
-                }
-            }
-            else
-            {
-                J3_SE_2cur = 0;
-            }
-        }
-
-        /////// J4 ////////////////////////////////
-        /// find pulse every
-        if (J4cur < J4step)
-        {
-            J4_PE = (HighStep / J4step);
-            /// find left over 1
-            J4_LO_1 = (HighStep - (J4step * J4_PE));
-            /// find skip 1
-            if (J4_LO_1 > 0)
-            {
-                J4_SE_1 = (HighStep / J4_LO_1);
-            }
-            else
-            {
-                J4_SE_1 = 0;
-            }
-            /// find left over 2
-            if (J4_SE_1 > 0)
-            {
-                J4_LO_2 = HighStep - ((J4step * J4_PE) + ((J4step * J4_PE) / J4_SE_1));
-            }
-            else
-            {
-                J4_LO_2 = 0;
-            }
-            /// find skip 2
-            if (J4_LO_2 > 0)
-            {
-                J4_SE_2 = (HighStep / J4_LO_2);
-            }
-            else
-            {
-                J4_SE_2 = 0;
-            }
-            /////////  J4  ///////////////
-            if (J4_SE_2 == 0)
-            {
-                J4_SE_2cur = (J4_SE_2 + 1);
-            }
-            if (J4_SE_2cur != J4_SE_2)
-            {
-                J4_SE_2cur = ++J4_SE_2cur;
-                if (J4_SE_1 == 0)
-                {
-                    J4_SE_1cur = (J4_SE_1 + 1);
-                }
-                if (J4_SE_1cur != J4_SE_1)
-                {
-                    J4_SE_1cur = ++J4_SE_1cur;
-                    J4_PEcur = ++J4_PEcur;
-                    if (J4_PEcur == J4_PE)
-                    {
-                        J4cur = ++J4cur;
-                        J4_PEcur = 0;
-                        digitalWrite(J4stepPin, LOW);
-                        delayMicroseconds(distDelay);
-                        disDelayCur = disDelayCur + distDelay;
-                        if (J4dir == 0)
-                        {
-                            J4StepM == --J4StepM;
-                        }
-                        else
-                        {
-                            J4StepM == ++J4StepM;
-                        }
-                    }
-                }
-                else
-                {
-                    J4_SE_1cur = 0;
-                }
-            }
-            else
-            {
-                J4_SE_2cur = 0;
-            }
-        }
-
-        /////// J5 ////////////////////////////////
-        /// find pulse every
-        if (J5cur < J5step)
-        {
-            J5_PE = (HighStep / J5step);
-            /// find left over 1
-            J5_LO_1 = (HighStep - (J5step * J5_PE));
-            /// find skip 1
-            if (J5_LO_1 > 0)
-            {
-                J5_SE_1 = (HighStep / J5_LO_1);
-            }
-            else
-            {
-                J5_SE_1 = 0;
-            }
-            /// find left over 2
-            if (J5_SE_1 > 0)
-            {
-                J5_LO_2 = HighStep - ((J5step * J5_PE) + ((J5step * J5_PE) / J5_SE_1));
-            }
-            else
-            {
-                J5_LO_2 = 0;
-            }
-            /// find skip 2
-            if (J5_LO_2 > 0)
-            {
-                J5_SE_2 = (HighStep / J5_LO_2);
-            }
-            else
-            {
-                J5_SE_2 = 0;
-            }
-            /////////  J5  ///////////////
-            if (J5_SE_2 == 0)
-            {
-                J5_SE_2cur = (J5_SE_2 + 1);
-            }
-            if (J5_SE_2cur != J5_SE_2)
-            {
-                J5_SE_2cur = ++J5_SE_2cur;
-                if (J5_SE_1 == 0)
-                {
-                    J5_SE_1cur = (J5_SE_1 + 1);
-                }
-                if (J5_SE_1cur != J5_SE_1)
-                {
-                    J5_SE_1cur = ++J5_SE_1cur;
-                    J5_PEcur = ++J5_PEcur;
-                    if (J5_PEcur == J5_PE)
-                    {
-                        J5cur = ++J5cur;
-                        J5_PEcur = 0;
-                        digitalWrite(J5stepPin, LOW);
-                        delayMicroseconds(distDelay);
-                        disDelayCur = disDelayCur + distDelay;
-                        if (J5dir == 0)
-                        {
-                            J5StepM == --J5StepM;
-                        }
-                        else
-                        {
-                            J5StepM == ++J5StepM;
-                        }
-                    }
-                }
-                else
-                {
-                    J5_SE_1cur = 0;
-                }
-            }
-            else
-            {
-                J5_SE_2cur = 0;
-            }
-        }
-
-        /////// J6 ////////////////////////////////
-        /// find pulse every
-        if (J6cur < J6step)
-        {
-            J6_PE = (HighStep / J6step);
-            /// find left over 1
-            J6_LO_1 = (HighStep - (J6step * J6_PE));
-            /// find skip 1
-            if (J6_LO_1 > 0)
-            {
-                J6_SE_1 = (HighStep / J6_LO_1);
-            }
-            else
-            {
-                J6_SE_1 = 0;
-            }
-            /// find left over 2
-            if (J6_SE_1 > 0)
-            {
-                J6_LO_2 = HighStep - ((J6step * J6_PE) + ((J6step * J6_PE) / J6_SE_1));
-            }
-            else
-            {
-                J6_LO_2 = 0;
-            }
-            /// find skip 2
-            if (J6_LO_2 > 0)
-            {
-                J6_SE_2 = (HighStep / J6_LO_2);
-            }
-            else
-            {
-                J6_SE_2 = 0;
-            }
-            /////////  J6  ///////////////
-            if (J6_SE_2 == 0)
-            {
-                J6_SE_2cur = (J6_SE_2 + 1);
-            }
-            if (J6_SE_2cur != J6_SE_2)
-            {
-                J6_SE_2cur = ++J6_SE_2cur;
-                if (J6_SE_1 == 0)
-                {
-                    J6_SE_1cur = (J6_SE_1 + 1);
-                }
-                if (J6_SE_1cur != J6_SE_1)
-                {
-                    J6_SE_1cur = ++J6_SE_1cur;
-                    J6_PEcur = ++J6_PEcur;
-                    if (J6_PEcur == J6_PE)
-                    {
-                        J6cur = ++J6cur;
-                        J6_PEcur = 0;
-                        digitalWrite(J6stepPin, LOW);
-                        delayMicroseconds(distDelay);
-                        disDelayCur = disDelayCur + distDelay;
-                        if (J6dir == 0)
-                        {
-                            J6StepM == --J6StepM;
-                        }
-                        else
-                        {
-                            J6StepM == ++J6StepM;
-                        }
-                    }
-                }
-                else
-                {
-                    J6_SE_1cur = 0;
-                }
-            }
-            else
-            {
-                J6_SE_2cur = 0;
-            }
-        }
-
-        /////// TR ////////////////////////////////
-        /// find pulse every
-        if (TRcur < TRstep)
+        ...
+            /////// TR ////////////////////////////////
+            /// find pulse every
+            if (TRcur < TRstep)
         {
             TR_PE = (HighStep / TRstep);
             /// find left over 1
@@ -2476,7 +2027,6 @@ if (function == "TF")
     Serial.println("Done");
 }
 
-
 //-----COMMAND TO CALIBRATE---------------------------------------------------
 if (function == "LL")
 {
@@ -2499,6 +2049,7 @@ if (function == "LL")
     int J4req = inData.substring(J4start + 1, J5start).toInt();
     int J5req = inData.substring(J5start + 1, J6start).toInt();
     int J6req = inData.substring(J6start + 1, J1calstart).toInt();
+
     float J1calOff = inData.substring(J1calstart + 1, J2calstart).toFloat();
     float J2calOff = inData.substring(J2calstart + 1, J3calstart).toFloat();
     float J3calOff = inData.substring(J3calstart + 1, J4calstart).toFloat();
@@ -2539,9 +2090,6 @@ if (function == "LL")
     {
         J6Step = J6StepLim;
     }
-
-    //--CALL FUNCT TO DRIVE TO LIMITS--
-    delay(500);
 
     // BACKOFF
 
@@ -2610,8 +2158,7 @@ if (function == "LL")
     }
 }
 
-//----- MOVE J ---------------------------------------------------
-//-----------------------------------------------------------------------
+//----- MOVE J --------------------------------------------------------
 if (function == "MJ")
 {
 
@@ -2677,8 +2224,8 @@ if (function == "MJ")
     int TRstepDif = TRStepM - TRfutStepM;
 
     // determine if requested position is within axis limits
-  
-  // CHECK 4 Faults
+
+    // CHECK 4 Faults
     TotalAxisFault = J1axisFault + J2axisFault + J3axisFault + J4axisFault + J5axisFault + J6axisFault + TRaxisFault;
 
     // send move command if no axis limit error
@@ -2706,7 +2253,7 @@ if (function == "MJ")
 }
 
 //----- LIVE CARTESIAN JOG  --------------------------------------------
-// TODO: Combine Cartesian and tool jog code 
+// TODO: Combine Cartesian and tool jog code
 if (function == "LC")
 {
     delay(5);
@@ -3616,966 +3163,22 @@ if (function == "JT")
                  ////////MOVE COMPLETE///////////
 }
 
-//----- MOVE A (Arc) ---------------------------------------------------
-if (function == "MA")
-{
-    int J1axisFault = 0;
-    int J2axisFault = 0;
-    int J3axisFault = 0;
-    int J4axisFault = 0;
-    int J5axisFault = 0;
-    int J6axisFault = 0;
-    int TotalAxisFault = 0;
-
-    String Alarm = "0";
-    float curWayDis, speedSP, Xvect, Yvect, Zvect, calcStepGap, theta;
-    float axis[3];
-    float axisTemp[3];
-    float startVect[3];
-    float Rotation[3][3];
-    float DestPt[3];
-    float a, b, c, d, aa, bb, cc, dd, bc, ad, ac, ab, bd, cd;
-
-    int xMidIndex = inData.indexOf("X");
-    int yMidIndex = inData.indexOf("Y");
-    int zMidIndex = inData.indexOf("Z");
-    int rzIndex = inData.indexOf("Rz");
-    int ryIndex = inData.indexOf("Ry");
-    int rxIndex = inData.indexOf("Rx");
-
-    int xEndIndex = inData.indexOf("Ex");
-    int yEndIndex = inData.indexOf("Ey");
-    int zEndIndex = inData.indexOf("Ez");
-    int tStart = inData.indexOf("Tr");
-    int SPstart = inData.indexOf("S");
-    int AcStart = inData.indexOf("Ac");
-    int DcStart = inData.indexOf("Dc");
-    int RmStart = inData.indexOf("Rm");
-    int WristConStart = inData.indexOf("W");
-
-    updatePos();
-
-    float xBeg = xyzuvw_Out[0];
-    float yBeg = xyzuvw_Out[1];
-    float zBeg = xyzuvw_Out[2];
-    float rzBeg = xyzuvw_Out[3];
-    float ryBeg = xyzuvw_Out[4];
-    float rxBeg = xyzuvw_Out[5];
-
-    float xMid = inData.substring(xMidIndex + 1, yMidIndex).toFloat();
-    float yMid = inData.substring(yMidIndex + 1, zMidIndex).toFloat();
-    float zMid = inData.substring(zMidIndex + 1, rzIndex).toFloat();
-
-    float rz = inData.substring(rzIndex + 2, ryIndex).toFloat();
-    float ry = inData.substring(ryIndex + 2, rxIndex).toFloat();
-    float rx = inData.substring(rxIndex + 2, xEndIndex).toFloat();
-
-    float RZvect = rzBeg - rz;
-    float RYvect = ryBeg - ry;
-    float RXvect = rxBeg - rx;
-
-    float xEnd = inData.substring(xEndIndex + 2, yEndIndex).toFloat();
-    float yEnd = inData.substring(yEndIndex + 2, zEndIndex).toFloat();
-    float zEnd = inData.substring(zEndIndex + 2, tStart).toFloat();
-    xyzuvw_In[6] = inData.substring(tStart + 2, SPstart).toFloat();
-    String SpeedType = inData.substring(SPstart + 1, SPstart + 2);
-    float SpeedVal = inData.substring(SPstart + 2, AcStart).toFloat();
-    float ACCspd = inData.substring(AcStart + 2, DcStart).toFloat();
-    float DCCspd = inData.substring(DcStart + 2, RmStart).toFloat();
-    float ACCramp = inData.substring(RmStart + 2, WristConStart).toFloat();
-    WristCon = inData.substring(WristConStart + 1);
-    WristCon.trim();
-
-    // determine length between each point (lengths of triangle)
-    Xvect = xEnd - xMid;
-    Yvect = yEnd - yMid;
-    Zvect = zEnd - zMid;
-    float aDist = pow((pow((Xvect), 2) + pow((Yvect), 2) + pow((Zvect), 2)), .5);
-    Xvect = xEnd - xBeg;
-    Yvect = yEnd - yBeg;
-    Zvect = zEnd - zBeg;
-    float bDist = pow((pow((Xvect), 2) + pow((Yvect), 2) + pow((Zvect), 2)), .5);
-    Xvect = xMid - xBeg;
-    Yvect = yMid - yBeg;
-    Zvect = zMid - zBeg;
-    float cDist = pow((pow((Xvect), 2) + pow((Yvect), 2) + pow((Zvect), 2)), .5);
-    // use lengths between each point (lengths of triangle) to determine radius
-    float s = (aDist + bDist + cDist) / 2;
-    float Radius = aDist * bDist * cDist / 4 / sqrt(s * (s - aDist) * (s - bDist) * (s - cDist));
-    // find barycentric coordinates of triangle (center of triangle)
-    float BCx = pow(aDist, 2) * (pow(bDist, 2) + pow(cDist, 2) - pow(aDist, 2));
-    float BCy = pow(bDist, 2) * (pow(cDist, 2) + pow(aDist, 2) - pow(bDist, 2));
-    float BCz = pow(cDist, 2) * (pow(aDist, 2) + pow(bDist, 2) - pow(cDist, 2));
-    // find center coordinates of circle - convert barycentric coordinates to cartesian coordinates - dot product of 3 points and barycentric coordiantes divided by sum of barycentric coordinates
-    float Px = ((BCx * xBeg) + (BCy * xMid) + (BCz * xEnd)) / (BCx + BCy + BCz);
-    float Py = ((BCx * yBeg) + (BCy * yMid) + (BCz * yEnd)) / (BCx + BCy + BCz);
-    float Pz = ((BCx * zBeg) + (BCy * zMid) + (BCz * zEnd)) / (BCx + BCy + BCz);
-    // define start vetor
-    startVect[0] = (xBeg - Px);
-    startVect[1] = (yBeg - Py);
-    startVect[2] = (zBeg - Pz);
-    // get 3 vectors from center of circle to begining target, mid target and end target then normalize
-    float vect_Amag = pow((pow((xBeg - Px), 2) + pow((yBeg - Py), 2) + pow((zBeg - Pz), 2)), .5);
-    float vect_Ax = (xBeg - Px) / vect_Amag;
-    float vect_Ay = (yBeg - Py) / vect_Amag;
-    float vect_Az = (zBeg - Pz) / vect_Amag;
-    float vect_Bmag = pow((pow((xMid - Px), 2) + pow((yMid - Py), 2) + pow((zMid - Pz), 2)), .5);
-    float vect_Bx = (xMid - Px) / vect_Bmag;
-    float vect_By = (yMid - Py) / vect_Bmag;
-    float vect_Bz = (zMid - Pz) / vect_Bmag;
-    float vect_Cmag = pow((pow((xEnd - Px), 2) + pow((yEnd - Py), 2) + pow((zEnd - Pz), 2)), .5);
-    float vect_Cx = (xEnd - Px) / vect_Cmag;
-    float vect_Cy = (yEnd - Py) / vect_Cmag;
-    float vect_Cz = (zEnd - Pz) / vect_Cmag;
-    // get cross product of vectors a & c than apply to axis matrix
-    float CrossX = (vect_Ay * vect_Bz) - (vect_Az * vect_By);
-    float CrossY = (vect_Az * vect_Bx) - (vect_Ax * vect_Bz);
-    float CrossZ = (vect_Ax * vect_By) - (vect_Ay * vect_Bx);
-    axis[0] = CrossX / sqrt((CrossX * CrossX) + (CrossY * CrossY) + (CrossZ * CrossZ));
-    axis[1] = CrossY / sqrt((CrossX * CrossX) + (CrossY * CrossY) + (CrossZ * CrossZ));
-    axis[2] = CrossZ / sqrt((CrossX * CrossX) + (CrossY * CrossY) + (CrossZ * CrossZ));
-    // get radian angle between vectors using acos of dot product
-    float ABradians = acos((vect_Ax * vect_Bx + vect_Ay * vect_By + vect_Az * vect_Bz) / (sqrt(pow(vect_Ax, 2) + pow(vect_Ay, 2) + pow(vect_Az, 2)) * sqrt(pow(vect_Bx, 2) + pow(vect_By, 2) + pow(vect_Bz, 2))));
-    float BCradians = acos((vect_Bx * vect_Cx + vect_By * vect_Cy + vect_Bz * vect_Cz) / (sqrt(pow(vect_Bx, 2) + pow(vect_By, 2) + pow(vect_Bz, 2)) * sqrt(pow(vect_Cx, 2) + pow(vect_Cy, 2) + pow(vect_Cz, 2))));
-    // get total degrees of both arcs
-    float ABdegrees = degrees(ABradians + BCradians);
-    // get arc length and calc way pt gap
-
-    float anglepercent = ABdegrees / 360;
-    float circumference = 2 * 3.14159265359 * Radius;
-    float lineDist = circumference * anglepercent;
-    float wayPts = lineDist / linWayDistSP;
-
-    float wayPerc = 1 / wayPts;
-    // cacl way pt angle
-    float theta_Deg = (ABdegrees / wayPts);
-
-    // determine steps
-    int HighStep = lineDist / .05;
-    float ACCStep = HighStep * (ACCspd / 100);
-    float NORStep = HighStep * ((100 - ACCspd - DCCspd) / 100);
-    float DCCStep = HighStep * (DCCspd / 100);
-
-    // set speed for seconds or mm per sec
-    if (SpeedType == "s")
-    {
-        speedSP = (SpeedVal * 1000000) * .2;
-    }
-    else if (SpeedType == "m")
-    {
-        speedSP = ((lineDist / SpeedVal) * 1000000) * .2;
-    }
-
-    // calc step gap for seconds or mm per sec
-    if (SpeedType == "s" or SpeedType == "m")
-    {
-        float zeroStepGap = speedSP / HighStep;
-        float zeroACCstepInc = (zeroStepGap * (100 / ACCramp)) / ACCStep;
-        float zeroACCtime = ((ACCStep)*zeroStepGap) + ((ACCStep - 9) * (((ACCStep) * (zeroACCstepInc / 2))));
-        float zeroNORtime = NORStep * zeroStepGap;
-        float zeroDCCstepInc = (zeroStepGap * (100 / ACCramp)) / DCCStep;
-        float zeroDCCtime = ((DCCStep)*zeroStepGap) + ((DCCStep - 9) * (((DCCStep) * (zeroDCCstepInc / 2))));
-        float zeroTOTtime = zeroACCtime + zeroNORtime + zeroDCCtime;
-        float overclockPerc = speedSP / zeroTOTtime;
-        calcStepGap = zeroStepGap * overclockPerc;
-        if (calcStepGap <= minSpeedDelay)
-        {
-            calcStepGap = minSpeedDelay;
-            speedViolation = "1";
-        }
-    }
-
-    // calc step gap for percentage
-    else if (SpeedType == "p")
-    {
-        calcStepGap = ((maxSpeedDelay - ((SpeedVal / 100) * maxSpeedDelay)) + minSpeedDelay);
-    }
-
-    // calculate final step increments
-    float calcACCstepInc = (calcStepGap * (100 / ACCramp)) / ACCStep;
-    float calcDCCstepInc = (calcStepGap * (100 / ACCramp)) / DCCStep;
-    float calcACCstartDel = (calcACCstepInc * ACCStep) * 2;
-    float calcDCCendDel = (calcDCCstepInc * DCCStep) * 2;
-
-    // calc way pt speeds
-    float ACCwayPts = wayPts * (ACCspd / 100);
-    float NORwayPts = wayPts * ((100 - ACCspd - DCCspd) / 100);
-    float DCCwayPts = wayPts * (DCCspd / 100);
-
-    // calc way inc for lin way steps
-    float ACCwayInc = (calcACCstartDel - calcStepGap) / ACCwayPts;
-    float DCCwayInc = (calcDCCendDel - calcStepGap) / DCCwayPts;
-
-    // set starting delsy
-    float curDelay = calcACCstartDel;
-
-    // set starting angle first way pt
-    float cur_deg = theta_Deg;
-
-    /////////////////////////////////////
-    // loop through waypoints
-    ////////////////////////////////////
-
-    resetEncoders();
-
-    for (int i = 0; i <= wayPts - 1; i++)
-    {
-
-        theta = radians(cur_deg);
-        // use euler rodrigues formula to find rotation vector
-        a = cos(theta / 2.0);
-        b = -axis[0] * sin(theta / 2.0);
-        c = -axis[1] * sin(theta / 2.0);
-        d = -axis[2] * sin(theta / 2.0);
-        aa = a * a;
-        bb = b * b;
-        cc = c * c;
-        dd = d * d;
-        bc = b * c;
-        ad = a * d;
-        ac = a * c;
-        ab = a * b;
-        bd = b * d;
-        cd = c * d;
-        Rotation[0][0] = aa + bb - cc - dd;
-        Rotation[0][1] = 2 * (bc + ad);
-        Rotation[0][2] = 2 * (bd - ac);
-        Rotation[1][0] = 2 * (bc - ad);
-        Rotation[1][1] = aa + cc - bb - dd;
-        Rotation[1][2] = 2 * (cd + ab);
-        Rotation[2][0] = 2 * (bd + ac);
-        Rotation[2][1] = 2 * (cd - ab);
-        Rotation[2][2] = aa + dd - bb - cc;
-
-        // get product of current rotation and start vector
-        DestPt[0] = (Rotation[0][0] * startVect[0]) + (Rotation[0][1] * startVect[1]) + (Rotation[0][2] * startVect[2]);
-        DestPt[1] = (Rotation[1][0] * startVect[0]) + (Rotation[1][1] * startVect[1]) + (Rotation[1][2] * startVect[2]);
-        DestPt[2] = (Rotation[2][0] * startVect[0]) + (Rotation[2][1] * startVect[1]) + (Rotation[2][2] * startVect[2]);
-
-        ////DELAY CALC/////
-        if (i <= ACCwayPts)
-        {
-            curDelay = curDelay - (ACCwayInc);
-        }
-        else if (i >= (wayPts - DCCwayPts))
-        {
-            curDelay = curDelay + (DCCwayInc);
-        }
-        else
-        {
-            curDelay = calcStepGap;
-        }
-
-        // shift way pts back to orignal origin and calc kinematics for way pt movement
-        float curWayPerc = wayPerc * i;
-        xyzuvw_In[0] = (DestPt[0]) + Px;
-        xyzuvw_In[1] = (DestPt[1]) + Py;
-        xyzuvw_In[2] = (DestPt[2]) + Pz;
-        xyzuvw_In[3] = rzBeg - (RZvect * curWayPerc);
-        xyzuvw_In[4] = ryBeg - (RYvect * curWayPerc);
-        xyzuvw_In[5] = rxBeg - (RXvect * curWayPerc);
-
-        SolveInverseKinematic();
-
-        // calc destination motor steps
-        int J1futStepM = (JangleOut[0] + J1axisLimNeg) * J1StepDeg;
-        int J2futStepM = (JangleOut[1] + J2axisLimNeg) * J2StepDeg;
-        int J3futStepM = (JangleOut[2] + J3axisLimNeg) * J3StepDeg;
-        int J4futStepM = (JangleOut[3] + J4axisLimNeg) * J4StepDeg;
-        int J5futStepM = (JangleOut[4] + J5axisLimNeg) * J5StepDeg;
-        int J6futStepM = (JangleOut[5] + J6axisLimNeg) * J6StepDeg;
-
-        // calc delta from current to destination
-        int J1stepDif = J1StepM - J1futStepM;
-        int J2stepDif = J2StepM - J2futStepM;
-        int J3stepDif = J3StepM - J3futStepM;
-        int J4stepDif = J4StepM - J4futStepM;
-        int J5stepDif = J5StepM - J5futStepM;
-        int J6stepDif = J6StepM - J6futStepM;
-        int TRstepDif = 0;
-
-        TRdir = 0;
-
-        // determine if requested position is within axis limits
-        if ((J1dir == 1 and (J1StepM + J1stepDif > J1StepLim)) or (J1dir == 0 and (J1StepM - J1stepDif < 0)))
-        {
-            J1axisFault = 1;
-        }
-        if ((J2dir == 1 and (J2StepM + J2stepDif > J2StepLim)) or (J2dir == 0 and (J2StepM - J2stepDif < 0)))
-        {
-            J2axisFault = 1;
-        }
-        if ((J3dir == 1 and (J3StepM + J3stepDif > J3StepLim)) or (J3dir == 0 and (J3StepM - J3stepDif < 0)))
-        {
-            J3axisFault = 1;
-        }
-        if ((J4dir == 1 and (J4StepM + J4stepDif > J4StepLim)) or (J4dir == 0 and (J4StepM - J4stepDif < 0)))
-        {
-            J4axisFault = 1;
-        }
-        if ((J5dir == 1 and (J5StepM + J5stepDif > J5StepLim)) or (J5dir == 0 and (J5StepM - J5stepDif < 0)))
-        {
-            J5axisFault = 1;
-        }
-        if ((J6dir == 1 and (J6StepM + J6stepDif > J6StepLim)) or (J6dir == 0 and (J6StepM - J6stepDif < 0)))
-        {
-            J6axisFault = 1;
-        }
-        TotalAxisFault = J1axisFault + J2axisFault + J3axisFault + J4axisFault + J5axisFault + J6axisFault;
-
-        // send move command if no axis limit error
-        if (TotalAxisFault == 0 && KinematicError == 0)
-        {
-            driveMotorsL(abs(J1stepDif), abs(J2stepDif), abs(J3stepDif), abs(J4stepDif), abs(J5stepDif), abs(J6stepDif), abs(TRstepDif), J1dir, J2dir, J3dir, J4dir, J5dir, J6dir, TRdir, curDelay);
-        }
-        else if (KinematicError == 1)
-        {
-            Alarm = "ER";
-            delay(5);
-            Serial.println(Alarm);
-        }
-        else
-        {
-            Alarm = "EL" + String(J1axisFault) + String(J2axisFault) + String(J3axisFault) + String(J4axisFault) + String(J5axisFault) + String(J6axisFault);
-            delay(5);
-            Serial.println(Alarm);
-        }
-
-        // increment angle
-        cur_deg += theta_Deg;
-    }
-    checkEncoders();
-    sendRobotPos();
-
-    inData = ""; // Clear recieved buffer
-                 ////////MOVE COMPLETE///////////
-}
-
-//----- MOVE C (Cirlce) ------------------------------------------------
-if (function == "MC")
-{
-    int J1axisFault = 0;
-    int J2axisFault = 0;
-    int J3axisFault = 0;
-    int J4axisFault = 0;
-    int J5axisFault = 0;
-    int J6axisFault = 0;
-    int TotalAxisFault = 0;
-
-    String Alarm = "0";
-    float curWayDis, speedSP, Xvect, Yvect, Zvect, calcStepGap, theta;
-    int Cdir;
-    float axis[3];
-    float axisTemp[3];
-    float startVect[3];
-    float Rotation[3][3];
-    float DestPt[3];
-    float a, b, c, d, aa, bb, cc, dd, bc, ad, ac, ab, bd, cd;
-
-    int xStart = inData.indexOf("Cx");
-    int yStart = inData.indexOf("Cy");
-    int zStart = inData.indexOf("Cz");
-    int rzStart = inData.indexOf("Rz");
-    int ryStart = inData.indexOf("Ry");
-    int rxStart = inData.indexOf("Rx");
-    int xMidIndex = inData.indexOf("Bx");
-    int yMidIndex = inData.indexOf("By");
-    int zMidIndex = inData.indexOf("Bz");
-    int xEndIndex = inData.indexOf("Px");
-    int yEndIndex = inData.indexOf("Py");
-    int zEndIndex = inData.indexOf("Pz");
-    int tStart = inData.indexOf("Tr");
-    int SPstart = inData.indexOf("S");
-    int AcStart = inData.indexOf("Ac");
-    int DcStart = inData.indexOf("Dc");
-    int RmStart = inData.indexOf("Rm");
-    int WristConStart = inData.indexOf("W");
-
-    float xBeg = inData.substring(xStart + 2, yStart).toFloat();
-    float yBeg = inData.substring(yStart + 2, zStart).toFloat();
-    float zBeg = inData.substring(zStart + 2, rzStart).toFloat();
-    float rzBeg = inData.substring(rzStart + 2, ryStart).toFloat();
-    float ryBeg = inData.substring(ryStart + 2, rxStart).toFloat();
-    float rxBeg = inData.substring(rxStart + 2, xMidIndex).toFloat();
-    float xMid = inData.substring(xMidIndex + 2, yMidIndex).toFloat();
-    float yMid = inData.substring(yMidIndex + 2, zMidIndex).toFloat();
-    float zMid = inData.substring(zMidIndex + 2, xEndIndex).toFloat();
-    float xEnd = inData.substring(xEndIndex + 2, yEndIndex).toFloat();
-    float yEnd = inData.substring(yEndIndex + 2, zEndIndex).toFloat();
-    float zEnd = inData.substring(zEndIndex + 2, tStart).toFloat();
-    xyzuvw_In[6] = inData.substring(tStart + 2, SPstart).toFloat();
-    String SpeedType = inData.substring(SPstart + 1, SPstart + 2);
-    float SpeedVal = inData.substring(SPstart + 2, AcStart).toFloat();
-    float ACCspd = inData.substring(AcStart + 2, DcStart).toFloat();
-    float DCCspd = inData.substring(DcStart + 2, RmStart).toFloat();
-    float ACCramp = inData.substring(RmStart + 2, WristConStart).toFloat();
-    WristCon = inData.substring(WristConStart + 1);
-    WristCon.trim();
-
-    // calc vector from start point of circle (mid) to center of circle (beg)
-    Xvect = xMid - xBeg;
-    Yvect = yMid - yBeg;
-    Zvect = zMid - zBeg;
-    // get radius - distance from first point (center of circle) to second point (start point of circle)
-    float Radius = pow((pow((Xvect), 2) + pow((Yvect), 2) + pow((Zvect), 2)), .5);
-
-    // set center coordinates of circle to first point (beg) as this is the center of our circle
-    float Px = xBeg;
-    float Py = yBeg;
-    float Pz = zBeg;
-
-    // define start vetor (mid) point is start of circle
-    startVect[0] = (xMid - Px);
-    startVect[1] = (yMid - Py);
-    startVect[2] = (zMid - Pz);
-    // get vectors from center of circle to  mid target (start) and end target then normalize
-    float vect_Bmag = pow((pow((xMid - Px), 2) + pow((yMid - Py), 2) + pow((zMid - Pz), 2)), .5);
-    float vect_Bx = (xMid - Px) / vect_Bmag;
-    float vect_By = (yMid - Py) / vect_Bmag;
-    float vect_Bz = (zMid - Pz) / vect_Bmag;
-    float vect_Cmag = pow((pow((xEnd - Px), 2) + pow((yEnd - Py), 2) + pow((zEnd - Pz), 2)), .5);
-    float vect_Cx = (xEnd - Px) / vect_Cmag;
-    float vect_Cy = (yEnd - Py) / vect_Cmag;
-    float vect_Cz = (zEnd - Pz) / vect_Cmag;
-    // get cross product of vectors b & c than apply to axis matrix
-    float CrossX = (vect_By * vect_Cz) - (vect_Bz * vect_Cy);
-    float CrossY = (vect_Bz * vect_Cx) - (vect_Bx * vect_Cz);
-    float CrossZ = (vect_Bx * vect_Cy) - (vect_By * vect_Cx);
-    axis[0] = CrossX / sqrt((CrossX * CrossX) + (CrossY * CrossY) + (CrossZ * CrossZ));
-    axis[1] = CrossY / sqrt((CrossX * CrossX) + (CrossY * CrossY) + (CrossZ * CrossZ));
-    axis[2] = CrossZ / sqrt((CrossX * CrossX) + (CrossY * CrossY) + (CrossZ * CrossZ));
-    // get radian angle between vectors using acos of dot product
-    float BCradians = acos((vect_Bx * vect_Cx + vect_By * vect_Cy + vect_Bz * vect_Cz) / (sqrt(pow(vect_Bx, 2) + pow(vect_Cy, 2) + pow(vect_Bz, 2)) * sqrt(pow(vect_Cx, 2) + pow(vect_Cy, 2) + pow(vect_Cz, 2))));
-    // get arc degree
-    float ABdegrees = degrees(BCradians);
-    // get direction from angle
-    if (ABdegrees > 0)
-    {
-        Cdir = 1;
-    }
-    else
-    {
-        Cdir = -1;
-    }
-
-    // get circumference and calc way pt gap
-    float lineDist = 2 * 3.14159265359 * Radius;
-    float wayPts = lineDist / linWayDistSP;
-
-    float wayPerc = 1 / wayPts;
-    // cacl way pt angle
-    float theta_Deg = ((360 * Cdir) / (wayPts));
-
-    // determine steps
-    int HighStep = lineDist / .05;
-    float ACCStep = HighStep * (ACCspd / 100);
-    float NORStep = HighStep * ((100 - ACCspd - DCCspd) / 100);
-    float DCCStep = HighStep * (DCCspd / 100);
-
-    // set speed for seconds or mm per sec
-    if (SpeedType == "s")
-    {
-        speedSP = (SpeedVal * 1000000) * .2;
-    }
-    else if (SpeedType == "m")
-    {
-        speedSP = ((lineDist / SpeedVal) * 1000000) * .2;
-    }
-
-    // calc step gap for seconds or mm per sec
-    if (SpeedType == "s" or SpeedType == "m")
-    {
-        float zeroStepGap = speedSP / HighStep;
-        float zeroACCstepInc = (zeroStepGap * (100 / ACCramp)) / ACCStep;
-        float zeroACCtime = ((ACCStep)*zeroStepGap) + ((ACCStep - 9) * (((ACCStep) * (zeroACCstepInc / 2))));
-        float zeroNORtime = NORStep * zeroStepGap;
-        float zeroDCCstepInc = (zeroStepGap * (100 / ACCramp)) / DCCStep;
-        float zeroDCCtime = ((DCCStep)*zeroStepGap) + ((DCCStep - 9) * (((DCCStep) * (zeroDCCstepInc / 2))));
-        float zeroTOTtime = zeroACCtime + zeroNORtime + zeroDCCtime;
-        float overclockPerc = speedSP / zeroTOTtime;
-        calcStepGap = zeroStepGap * overclockPerc;
-        if (calcStepGap <= minSpeedDelay)
-        {
-            calcStepGap = minSpeedDelay;
-            speedViolation = "1";
-        }
-    }
-
-    // calc step gap for percentage
-    else if (SpeedType == "p")
-    {
-        calcStepGap = ((maxSpeedDelay - ((SpeedVal / 100) * maxSpeedDelay)) + minSpeedDelay);
-    }
-
-    // calculate final step increments
-    float calcACCstepInc = (calcStepGap * (100 / ACCramp)) / ACCStep;
-    float calcDCCstepInc = (calcStepGap * (100 / ACCramp)) / DCCStep;
-    float calcACCstartDel = (calcACCstepInc * ACCStep) * 2;
-    float calcDCCendDel = (calcDCCstepInc * DCCStep) * 2;
-
-    // calc way pt speeds
-    float ACCwayPts = wayPts * (ACCspd / 100);
-    float NORwayPts = wayPts * ((100 - ACCspd - DCCspd) / 100);
-    float DCCwayPts = wayPts * (DCCspd / 100);
-
-    // calc way inc for lin way steps
-    float ACCwayInc = (calcACCstartDel - calcStepGap) / ACCwayPts;
-    float DCCwayInc = (calcDCCendDel - calcStepGap) / DCCwayPts;
-
-    // set starting delsy
-    float curDelay = calcACCstartDel;
-
-    // set starting angle first way pt
-    float cur_deg = theta_Deg;
-
-    /////////////////////////////////////
-    // loop through waypoints
-    ////////////////////////////////////
-
-    resetEncoders();
-
-    for (int i = 1; i <= wayPts; i++)
-    {
-
-        theta = radians(cur_deg);
-        // use euler rodrigues formula to find rotation vector
-        a = cos(theta / 2.0);
-        b = -axis[0] * sin(theta / 2.0);
-        c = -axis[1] * sin(theta / 2.0);
-        d = -axis[2] * sin(theta / 2.0);
-        aa = a * a;
-        bb = b * b;
-        cc = c * c;
-        dd = d * d;
-        bc = b * c;
-        ad = a * d;
-        ac = a * c;
-        ab = a * b;
-        bd = b * d;
-        cd = c * d;
-        Rotation[0][0] = aa + bb - cc - dd;
-        Rotation[0][1] = 2 * (bc + ad);
-        Rotation[0][2] = 2 * (bd - ac);
-        Rotation[1][0] = 2 * (bc - ad);
-        Rotation[1][1] = aa + cc - bb - dd;
-        Rotation[1][2] = 2 * (cd + ab);
-        Rotation[2][0] = 2 * (bd + ac);
-        Rotation[2][1] = 2 * (cd - ab);
-        Rotation[2][2] = aa + dd - bb - cc;
-
-        // get product of current rotation and start vector
-        DestPt[0] = (Rotation[0][0] * startVect[0]) + (Rotation[0][1] * startVect[1]) + (Rotation[0][2] * startVect[2]);
-        DestPt[1] = (Rotation[1][0] * startVect[0]) + (Rotation[1][1] * startVect[1]) + (Rotation[1][2] * startVect[2]);
-        DestPt[2] = (Rotation[2][0] * startVect[0]) + (Rotation[2][1] * startVect[1]) + (Rotation[2][2] * startVect[2]);
-
-        ////DELAY CALC/////
-        if (i <= ACCwayPts)
-        {
-            curDelay = curDelay - (ACCwayInc);
-        }
-        else if (i >= (wayPts - DCCwayPts))
-        {
-            curDelay = curDelay + (DCCwayInc);
-        }
-        else
-        {
-            curDelay = calcStepGap;
-        }
-
-        // shift way pts back to orignal origin and calc kinematics for way pt movement
-        xyzuvw_In[0] = (DestPt[0]) + Px;
-        xyzuvw_In[1] = (DestPt[1]) + Py;
-        xyzuvw_In[2] = (DestPt[2]) + Pz;
-        xyzuvw_In[3] = rzBeg;
-        xyzuvw_In[4] = ryBeg;
-        xyzuvw_In[5] = rxBeg;
-
-        SolveInverseKinematic();
-
-        // calc destination motor steps
-        int J1futStepM = (JangleOut[0] + J1axisLimNeg) * J1StepDeg;
-        int J2futStepM = (JangleOut[1] + J2axisLimNeg) * J2StepDeg;
-        int J3futStepM = (JangleOut[2] + J3axisLimNeg) * J3StepDeg;
-        int J4futStepM = (JangleOut[3] + J4axisLimNeg) * J4StepDeg;
-        int J5futStepM = (JangleOut[4] + J5axisLimNeg) * J5StepDeg;
-        int J6futStepM = (JangleOut[5] + J6axisLimNeg) * J6StepDeg;
-
-        // calc delta from current to destination
-        int J1stepDif = J1StepM - J1futStepM;
-        int J2stepDif = J2StepM - J2futStepM;
-        int J3stepDif = J3StepM - J3futStepM;
-        int J4stepDif = J4StepM - J4futStepM;
-        int J5stepDif = J5StepM - J5futStepM;
-        int J6stepDif = J6StepM - J6futStepM;
-        int TRstepDif = 0;
-
-        // determine if requested position is within axis limits
-        if ((J1dir == 1 and (J1StepM + J1stepDif > J1StepLim)) or (J1dir == 0 and (J1StepM - J1stepDif < 0)))
-        {
-            J1axisFault = 1;
-        }
-        if ((J2dir == 1 and (J2StepM + J2stepDif > J2StepLim)) or (J2dir == 0 and (J2StepM - J2stepDif < 0)))
-        {
-            J2axisFault = 1;
-        }
-        if ((J3dir == 1 and (J3StepM + J3stepDif > J3StepLim)) or (J3dir == 0 and (J3StepM - J3stepDif < 0)))
-        {
-            J3axisFault = 1;
-        }
-        if ((J4dir == 1 and (J4StepM + J4stepDif > J4StepLim)) or (J4dir == 0 and (J4StepM - J4stepDif < 0)))
-        {
-            J4axisFault = 1;
-        }
-        if ((J5dir == 1 and (J5StepM + J5stepDif > J5StepLim)) or (J5dir == 0 and (J5StepM - J5stepDif < 0)))
-        {
-            J5axisFault = 1;
-        }
-        if ((J6dir == 1 and (J6StepM + J6stepDif > J6StepLim)) or (J6dir == 0 and (J6StepM - J6stepDif < 0)))
-        {
-            J6axisFault = 1;
-        }
-        TotalAxisFault = J1axisFault + J2axisFault + J3axisFault + J4axisFault + J5axisFault + J6axisFault;
-
-        if (TotalAxisFault == 0 && KinematicError == 0)
-        {
-            driveMotorsL(abs(J1stepDif), abs(J2stepDif), abs(J3stepDif), abs(J4stepDif), abs(J5stepDif), abs(J6stepDif), abs(TRstepDif), J1dir, J2dir, J3dir, J4dir, J5dir, J6dir, TRdir, curDelay);
-        }
-        else if (KinematicError == 1)
-        {
-            Alarm = "ER";
-            delay(5);
-            Serial.println(Alarm);
-        }
-        else
-        {
-            Alarm = "EL" + String(J1axisFault) + String(J2axisFault) + String(J3axisFault) + String(J4axisFault) + String(J5axisFault) + String(J6axisFault);
-            delay(5);
-            Serial.println(Alarm);
-        }
-
-        // increment angle
-        cur_deg += theta_Deg;
-    }
-
-    checkEncoders();
-    sendRobotPos();
-
-    inData = ""; // Clear recieved buffer
-                 ////////MOVE COMPLETE///////////
-}
-
-//----- MOVE L ---------------------------------------------------------
-if (function == "ML")
-{
-
-    int J1axisFault = 0;
-    int J2axisFault = 0;
-    int J3axisFault = 0;
-    int J4axisFault = 0;
-    int J5axisFault = 0;
-    int J6axisFault = 0;
-    int TRaxisFault = 0;
-    int TotalAxisFault = 0;
-
-    String Alarm = "0";
-
-    float curWayDis;
-    float speedSP;
-
-    int xStart = inData.indexOf("X");
-    int yStart = inData.indexOf("Y");
-    int zStart = inData.indexOf("Z");
-    int rzStart = inData.indexOf("Rz");
-    int ryStart = inData.indexOf("Ry");
-    int rxStart = inData.indexOf("Rx");
-    int tStart = inData.indexOf("Tr");
-    int SPstart = inData.indexOf("S");
-    int AcStart = inData.indexOf("Ac");
-    int DcStart = inData.indexOf("Dc");
-    int RmStart = inData.indexOf("Rm");
-    int WristConStart = inData.indexOf("W");
-
-    xyzuvw_In[0] = inData.substring(xStart + 1, yStart).toFloat();
-    xyzuvw_In[1] = inData.substring(yStart + 1, zStart).toFloat();
-    xyzuvw_In[2] = inData.substring(zStart + 1, rzStart).toFloat();
-    xyzuvw_In[3] = inData.substring(rzStart + 2, ryStart).toFloat();
-    xyzuvw_In[4] = inData.substring(ryStart + 2, rxStart).toFloat();
-    xyzuvw_In[5] = inData.substring(rxStart + 2, tStart).toFloat();
-    xyzuvw_In[6] = inData.substring(tStart + 2, SPstart).toFloat();
-
-    String SpeedType = inData.substring(SPstart + 1, SPstart + 2);
-    float SpeedVal = inData.substring(SPstart + 2, AcStart).toFloat();
-    float ACCspd = inData.substring(AcStart + 2, DcStart).toFloat();
-    float DCCspd = inData.substring(DcStart + 2, RmStart).toFloat();
-    float ACCramp = inData.substring(RmStart + 2, WristConStart).toFloat();
-
-    WristCon = inData.substring(WristConStart + 1);
-    WristCon.trim();
-
-    // vector
-    float Xvect = xyzuvw_In[0] - xyzuvw_Out[0];
-    float Yvect = xyzuvw_In[1] - xyzuvw_Out[1];
-    float Zvect = xyzuvw_In[2] - xyzuvw_Out[2];
-    float RZvect = xyzuvw_In[3] - xyzuvw_Out[3];
-    float RYvect = xyzuvw_In[4] - xyzuvw_Out[4];
-    float RXvect = xyzuvw_In[5] - xyzuvw_Out[5];
-
-    // start pos
-    float Xstart = xyzuvw_Out[0];
-    float Ystart = xyzuvw_Out[1];
-    float Zstart = xyzuvw_Out[2];
-    float RZstart = xyzuvw_Out[3];
-    float RYstart = xyzuvw_Out[4];
-    float RXstart = xyzuvw_Out[5];
-
-    // line dist and determine way point gap
-    float lineDist = pow((pow((Xvect), 2) + pow((Yvect), 2) + pow((Zvect), 2) + pow((RZvect), 2) + pow((RYvect), 2) + pow((RXvect), 2)), .5);
-    if (lineDist > 0)
-    {
-        float wayPts = lineDist / linWayDistSP;
-        float wayPerc = 1 / wayPts;
-
-        // pre calculate entire move and speeds
-        SolveInverseKinematic();
-
-        // calc destination motor steps for precalc
-        int J1futStepM = (JangleOut[0] + J1axisLimNeg) * J1StepDeg;
-        int J2futStepM = (JangleOut[1] + J2axisLimNeg) * J2StepDeg;
-        int J3futStepM = (JangleOut[2] + J3axisLimNeg) * J3StepDeg;
-        int J4futStepM = (JangleOut[3] + J4axisLimNeg) * J4StepDeg;
-        int J5futStepM = (JangleOut[4] + J5axisLimNeg) * J5StepDeg;
-        int J6futStepM = (JangleOut[5] + J6axisLimNeg) * J6StepDeg;
-
-        // calc delta from current to destination fpr precalc
-        int J1stepDif = J1StepM - J1futStepM;
-        int J2stepDif = J2StepM - J2futStepM;
-        int J3stepDif = J3StepM - J3futStepM;
-        int J4stepDif = J4StepM - J4futStepM;
-        int J5stepDif = J5StepM - J5futStepM;
-        int J6stepDif = J6StepM - J6futStepM;
-
-        // FIND HIGHEST STEP FOR PRECALC
-        int HighStep = J1stepDif;
-        if (J2stepDif > HighStep)
-        {
-            HighStep = J2stepDif;
-        }
-        if (J3stepDif > HighStep)
-        {
-            HighStep = J3stepDif;
-        }
-        if (J4stepDif > HighStep)
-        {
-            HighStep = J4stepDif;
-        }
-        if (J5stepDif > HighStep)
-        {
-            HighStep = J5stepDif;
-        }
-        if (J6stepDif > HighStep)
-        {
-            HighStep = J6stepDif;
-        }
-
-        /////PRE CALC SPEEDS//////
-        float calcStepGap;
-
-        // determine steps
-        float ACCStep = HighStep * (ACCspd / 100);
-        float NORStep = HighStep * ((100 - ACCspd - DCCspd) / 100);
-        float DCCStep = HighStep * (DCCspd / 100);
-
-        // set speed for seconds or mm per sec
-        if (SpeedType == "s")
-        {
-            speedSP = (SpeedVal * 1000000) * .2;
-        }
-        else if ((SpeedType == "m"))
-        {
-            speedSP = ((lineDist / SpeedVal) * 1000000) * .2;
-        }
-
-        // calc step gap for seconds or mm per sec
-        if (SpeedType == "s" or SpeedType == "m")
-        {
-            float zeroStepGap = speedSP / HighStep;
-            float zeroACCstepInc = (zeroStepGap * (100 / ACCramp)) / ACCStep;
-            float zeroACCtime = ((ACCStep)*zeroStepGap) + ((ACCStep - 9) * (((ACCStep) * (zeroACCstepInc / 2))));
-            float zeroNORtime = NORStep * zeroStepGap;
-            float zeroDCCstepInc = (zeroStepGap * (100 / ACCramp)) / DCCStep;
-            float zeroDCCtime = ((DCCStep)*zeroStepGap) + ((DCCStep - 9) * (((DCCStep) * (zeroDCCstepInc / 2))));
-            float zeroTOTtime = zeroACCtime + zeroNORtime + zeroDCCtime;
-            float overclockPerc = speedSP / zeroTOTtime;
-            calcStepGap = zeroStepGap * overclockPerc;
-            if (calcStepGap <= minSpeedDelay)
-            {
-                calcStepGap = minSpeedDelay;
-                speedViolation = "1";
-            }
-        }
-
-        // calc step gap for percentage
-        else if (SpeedType == "p")
-        {
-            calcStepGap = ((maxSpeedDelay - ((SpeedVal / 100) * maxSpeedDelay)) + minSpeedDelay);
-        }
-
-        // calculate final step increments
-        float calcACCstepInc = (calcStepGap * (100 / ACCramp)) / ACCStep;
-        float calcDCCstepInc = (calcStepGap * (100 / ACCramp)) / DCCStep;
-        float calcACCstartDel = (calcACCstepInc * ACCStep) * 2;
-        float calcDCCendDel = (calcDCCstepInc * DCCStep) * 2;
-
-        // calc way pt speeds
-        float ACCwayPts = wayPts * (ACCspd / 100);
-        float NORwayPts = wayPts * ((100 - ACCspd - DCCspd) / 100);
-        float DCCwayPts = wayPts * (DCCspd / 100);
-
-        // calc way inc for lin way steps
-        float ACCwayInc = (calcACCstartDel - calcStepGap) / ACCwayPts;
-        float DCCwayInc = (calcDCCendDel - calcStepGap) / DCCwayPts;
-
-        // set starting delsy
-        float curDelay = calcACCstartDel;
-
-        // calc track way pt moves
-        int TRfutStepM = (xyzuvw_In[6] + TRaxisLimNeg) * TRStepDeg;
-        int TRstepDif = (TRStepM - TRfutStepM) / (wayPts - 1);
-        if (TRstepDif <= 0)
-        {
-            TRdir = 1;
-        }
-        else
-        {
-            TRdir = 0;
-        }
-
-        resetEncoders();
-        /////////////////
-        // loop through waypoints
-        for (int i = 1; i <= wayPts; i++)
-        {
-            ////DELAY CALC/////
-            if (i <= ACCwayPts)
-            {
-                curDelay = curDelay - (ACCwayInc);
-            }
-            else if (i >= (wayPts - DCCwayPts))
-            {
-                curDelay = curDelay + (DCCwayInc);
-            }
-            else
-            {
-                curDelay = calcStepGap;
-            }
-
-            if (debugg == 1)
-            {
-                curDelay = 0;
-            }
-
-            float curWayPerc = wayPerc * i;
-            xyzuvw_In[0] = Xstart + (Xvect * curWayPerc);
-            xyzuvw_In[1] = Ystart + (Yvect * curWayPerc);
-            xyzuvw_In[2] = Zstart + (Zvect * curWayPerc);
-            xyzuvw_In[3] = RZstart + (RZvect * curWayPerc);
-            xyzuvw_In[4] = RYstart + (RYvect * curWayPerc);
-            xyzuvw_In[5] = RXstart + (RXvect * curWayPerc);
-
-            SolveInverseKinematic();
-
-            // calc destination motor steps
-            int J1futStepM = (JangleOut[0] + J1axisLimNeg) * J1StepDeg;
-            int J2futStepM = (JangleOut[1] + J2axisLimNeg) * J2StepDeg;
-            int J3futStepM = (JangleOut[2] + J3axisLimNeg) * J3StepDeg;
-            int J4futStepM = (JangleOut[3] + J4axisLimNeg) * J4StepDeg;
-            int J5futStepM = (JangleOut[4] + J5axisLimNeg) * J5StepDeg;
-            int J6futStepM = (JangleOut[5] + J6axisLimNeg) * J6StepDeg;
-
-            // calc delta from current to destination
-            int J1stepDif = J1StepM - J1futStepM;
-            int J2stepDif = J2StepM - J2futStepM;
-            int J3stepDif = J3StepM - J3futStepM;
-            int J4stepDif = J4StepM - J4futStepM;
-            int J5stepDif = J5StepM - J5futStepM;
-            int J6stepDif = J6StepM - J6futStepM;
-
-            // determine if requested position is within axis limits
-            if ((J1dir == 1 and (J1StepM + J1stepDif > J1StepLim)) or (J1dir == 0 and (J1StepM - J1stepDif < 0)))
-            {
-                J1axisFault = 1;
-            }
-            if ((J2dir == 1 and (J2StepM + J2stepDif > J2StepLim)) or (J2dir == 0 and (J2StepM - J2stepDif < 0)))
-            {
-                J2axisFault = 1;
-            }
-            if ((J3dir == 1 and (J3StepM + J3stepDif > J3StepLim)) or (J3dir == 0 and (J3StepM - J3stepDif < 0)))
-            {
-                J3axisFault = 1;
-            }
-            if ((J4dir == 1 and (J4StepM + J4stepDif > J4StepLim)) or (J4dir == 0 and (J4StepM - J4stepDif < 0)))
-            {
-                J4axisFault = 1;
-            }
-            if ((J5dir == 1 and (J5StepM + J5stepDif > J5StepLim)) or (J5dir == 0 and (J5StepM - J5stepDif < 0)))
-            {
-                J5axisFault = 1;
-            }
-            if ((J6dir == 1 and (J6StepM + J6stepDif > J6StepLim)) or (J6dir == 0 and (J6StepM - J6stepDif < 0)))
-            {
-                J6axisFault = 1;
-            }
-            if ((TRdir == 1 and (TRStepM + TRstepDif > TRStepLim)) or (TRdir == 0 and (TRStepM - TRstepDif < 0)))
-            {
-                TRaxisFault = 1;
-            }
-            TotalAxisFault = J1axisFault + J2axisFault + J3axisFault + J4axisFault + J5axisFault + J6axisFault + TRaxisFault;
-
-            // send move command if no axis limit error
-            if (TotalAxisFault == 0 && KinematicError == 0)
-            {
-                driveMotorsL(abs(J1stepDif), abs(J2stepDif), abs(J3stepDif), abs(J4stepDif), abs(J5stepDif), abs(J6stepDif), abs(TRstepDif), J1dir, J2dir, J3dir, J4dir, J5dir, J6dir, TRdir, curDelay);
-                updatePos();
-            }
-            else if (KinematicError == 1)
-            {
-                Alarm = "ER";
-                delay(5);
-                Serial.println(Alarm);
-            }
-            else
-            {
-                Alarm = "EL" + String(J1axisFault) + String(J2axisFault) + String(J3axisFault) + String(J4axisFault) + String(J5axisFault) + String(J6axisFault) + String(TRaxisFault);
-                delay(5);
-                Serial.println(Alarm);
-            }
-        }
-    }
-
-    inData = ""; // Clear recieved buffer
-    ////////MOVE COMPLETE///////////
-
-    delay(5);
-    checkEncoders();
-    sendRobotPos();
-}
-}
-
 class IkController
 {
-    void attach(){
-
+    void attach()
+    {
     }
-void updatePos()
-{
-    JangleIn[0] = (J1StepM - J1zeroStep) / J1StepDeg;
 
-    SolveFowardKinematic();
-}
+    void updatePos()
+    {
+        JangleIn[0] = (J1StepM - J1zeroStep) / J1StepDeg;
+
+        SolveFowardKinematic();
+    }
 
     // DENAVIT HARTENBERG PARAMETERS SAME AS ROBODK
 
-    float DHparams[6][4] = {
+    float DHparams[ROBOT_nDOFs][4] = {
         {0, 0, 169.77, 0},
         {-90, -90, 0, 64.2},
         {0, 0, 0, 305},
@@ -4587,7 +3190,8 @@ void updatePos()
     int AxisFaultStatus;
 
     currentstate;
-        nextstate ;float pose[16];
+    nextstate;
+    float pose[16];
 
     // declare in out vars
     float xyzuvw_Out[6];
@@ -4621,6 +3225,61 @@ void updatePos()
         }
     }
 
+    void robot_data_grab()
+    {
+        robot_data_reset();
+
+        // Alpha parameters
+        Robot_Kin_DHM_L1[DHM_Alpha] = DHparams[0][1] * M_PI / 180;
+        Robot_Kin_DHM_L2[DHM_Alpha] = DHparams[1][1] * M_PI / 180;
+        Robot_Kin_DHM_L3[DHM_Alpha] = DHparams[2][1] * M_PI / 180;
+        Robot_Kin_DHM_L4[DHM_Alpha] = DHparams[3][1] * M_PI / 180;
+        Robot_Kin_DHM_L5[DHM_Alpha] = DHparams[4][1] * M_PI / 180;
+        Robot_Kin_DHM_L6[DHM_Alpha] = DHparams[5][1] * M_PI / 180;
+
+        // Theta parameters
+        Robot_Kin_DHM_L1[DHM_Theta] = DHparams[0][0] * M_PI / 180;
+        Robot_Kin_DHM_L2[DHM_Theta] = DHparams[1][0] * M_PI / 180;
+        Robot_Kin_DHM_L3[DHM_Theta] = DHparams[2][0] * M_PI / 180;
+        Robot_Kin_DHM_L4[DHM_Theta] = DHparams[3][0] * M_PI / 180;
+        Robot_Kin_DHM_L5[DHM_Theta] = DHparams[4][0] * M_PI / 180;
+        Robot_Kin_DHM_L6[DHM_Theta] = DHparams[5][0] * M_PI / 180;
+
+        // A parameters
+        Robot_Kin_DHM_L1[DHM_A] = DHparams[0][3];
+        Robot_Kin_DHM_L2[DHM_A] = DHparams[1][3];
+        Robot_Kin_DHM_L3[DHM_A] = DHparams[2][3];
+        Robot_Kin_DHM_L4[DHM_A] = DHparams[3][3];
+        Robot_Kin_DHM_L5[DHM_A] = DHparams[4][3];
+        Robot_Kin_DHM_L6[DHM_A] = DHparams[5][3];
+
+        // D parameters
+        Robot_Kin_DHM_L1[DHM_D] = DHparams[0][2];
+        Robot_Kin_DHM_L2[DHM_D] = DHparams[1][2];
+        Robot_Kin_DHM_L3[DHM_D] = DHparams[2][2];
+        Robot_Kin_DHM_L4[DHM_D] = DHparams[3][2];
+        Robot_Kin_DHM_L5[DHM_D] = DHparams[4][2];
+        Robot_Kin_DHM_L6[DHM_D] = DHparams[5][2];
+
+        for (size_t i = 0; i < count; i++)
+        {
+            /* code */
+        }
+
+        Robot_JointLimits_Lower[0] = J1axisLimNeg;
+        Robot_JointLimits_Upper[0] = J1axisLimPos;
+        Robot_JointLimits_Lower[1] = J2axisLimNeg;
+        Robot_JointLimits_Upper[1] = J2axisLimPos;
+        Robot_JointLimits_Lower[2] = J3axisLimNeg;
+        Robot_JointLimits_Upper[2] = J3axisLimPos;
+        Robot_JointLimits_Lower[3] = J4axisLimNeg;
+        Robot_JointLimits_Upper[3] = J4axisLimPos;
+        Robot_JointLimits_Lower[4] = J5axisLimNeg;
+        Robot_JointLimits_Upper[4] = J5axisLimPos;
+        Robot_JointLimits_Lower[5] = J6axisLimNeg;
+        Robot_JointLimits_Upper[5] = J6axisLimPos;
+    }
+
     void SolveInverseKinematic()
     {
         float joints[ROBOT_nDOFs];
@@ -4630,9 +3289,11 @@ void updatePos()
         int NumberOfSol = 0;
         int solVal = 0;
 
-        int KinematicError = 0;
+        for (int i = 0; i < ROBOT_nDOFs; i++)
+        {
+            joints_estimate[i] = JangleIn[i];
+        }
 
-        JointEstimate();
         target[0] = xyzuvw_In[0];
         target[1] = xyzuvw_In[1];
         target[2] = xyzuvw_In[2];
@@ -4716,12 +3377,956 @@ void updatePos()
         xyzuvw_Out[5] = target_xyzuvw[5] / M_PI * 180;
     }
 
-    void move(type){
-        "ARC"
-        "LIN"
-        "CRC"};
+    void move(type)
+    {
+        //----- MOVE A (Arc) ---------------------------------------------------
+        if (function == "MA")
+        {
+            int J1axisFault = 0;
+            int J2axisFault = 0;
+            int J3axisFault = 0;
+            int J4axisFault = 0;
+            int J5axisFault = 0;
+            int J6axisFault = 0;
+            int TotalAxisFault = 0;
 
-    void jog(type){
+            String Alarm = "0";
+            float curWayDis, speedSP, Xvect, Yvect, Zvect, calcStepGap, theta;
+            float axis[3];
+            float axisTemp[3];
+            float startVect[3];
+            float Rotation[3][3];
+            float DestPt[3];
+            float a, b, c, d, aa, bb, cc, dd, bc, ad, ac, ab, bd, cd;
 
-    };
+            int xMidIndex = inData.indexOf("X");
+            int yMidIndex = inData.indexOf("Y");
+            int zMidIndex = inData.indexOf("Z");
+            int rzIndex = inData.indexOf("Rz");
+            int ryIndex = inData.indexOf("Ry");
+            int rxIndex = inData.indexOf("Rx");
+
+            int xEndIndex = inData.indexOf("Ex");
+            int yEndIndex = inData.indexOf("Ey");
+            int zEndIndex = inData.indexOf("Ez");
+            int tStart = inData.indexOf("Tr");
+            int SPstart = inData.indexOf("S");
+            int AcStart = inData.indexOf("Ac");
+            int DcStart = inData.indexOf("Dc");
+            int RmStart = inData.indexOf("Rm");
+            int WristConStart = inData.indexOf("W");
+
+            updatePos();
+
+            float xBeg = xyzuvw_Out[0];
+            float yBeg = xyzuvw_Out[1];
+            float zBeg = xyzuvw_Out[2];
+            float rzBeg = xyzuvw_Out[3];
+            float ryBeg = xyzuvw_Out[4];
+            float rxBeg = xyzuvw_Out[5];
+
+            float xMid = inData.substring(xMidIndex + 1, yMidIndex).toFloat();
+            float yMid = inData.substring(yMidIndex + 1, zMidIndex).toFloat();
+            float zMid = inData.substring(zMidIndex + 1, rzIndex).toFloat();
+
+            float rz = inData.substring(rzIndex + 2, ryIndex).toFloat();
+            float ry = inData.substring(ryIndex + 2, rxIndex).toFloat();
+            float rx = inData.substring(rxIndex + 2, xEndIndex).toFloat();
+
+            float RZvect = rzBeg - rz;
+            float RYvect = ryBeg - ry;
+            float RXvect = rxBeg - rx;
+
+            float xEnd = inData.substring(xEndIndex + 2, yEndIndex).toFloat();
+            float yEnd = inData.substring(yEndIndex + 2, zEndIndex).toFloat();
+            float zEnd = inData.substring(zEndIndex + 2, tStart).toFloat();
+            xyzuvw_In[6] = inData.substring(tStart + 2, SPstart).toFloat();
+            String SpeedType = inData.substring(SPstart + 1, SPstart + 2);
+            float SpeedVal = inData.substring(SPstart + 2, AcStart).toFloat();
+            float ACCspd = inData.substring(AcStart + 2, DcStart).toFloat();
+            float DCCspd = inData.substring(DcStart + 2, RmStart).toFloat();
+            float ACCramp = inData.substring(RmStart + 2, WristConStart).toFloat();
+            WristCon = inData.substring(WristConStart + 1);
+            WristCon.trim();
+
+            // determine length between each point (lengths of triangle)
+            Xvect = xEnd - xMid;
+            Yvect = yEnd - yMid;
+            Zvect = zEnd - zMid;
+            float aDist = pow((pow((Xvect), 2) + pow((Yvect), 2) + pow((Zvect), 2)), .5);
+            Xvect = xEnd - xBeg;
+            Yvect = yEnd - yBeg;
+            Zvect = zEnd - zBeg;
+            float bDist = pow((pow((Xvect), 2) + pow((Yvect), 2) + pow((Zvect), 2)), .5);
+            Xvect = xMid - xBeg;
+            Yvect = yMid - yBeg;
+            Zvect = zMid - zBeg;
+            float cDist = pow((pow((Xvect), 2) + pow((Yvect), 2) + pow((Zvect), 2)), .5);
+            // use lengths between each point (lengths of triangle) to determine radius
+            float s = (aDist + bDist + cDist) / 2;
+            float Radius = aDist * bDist * cDist / 4 / sqrt(s * (s - aDist) * (s - bDist) * (s - cDist));
+            // find barycentric coordinates of triangle (center of triangle)
+            float BCx = pow(aDist, 2) * (pow(bDist, 2) + pow(cDist, 2) - pow(aDist, 2));
+            float BCy = pow(bDist, 2) * (pow(cDist, 2) + pow(aDist, 2) - pow(bDist, 2));
+            float BCz = pow(cDist, 2) * (pow(aDist, 2) + pow(bDist, 2) - pow(cDist, 2));
+            // find center coordinates of circle - convert barycentric coordinates to cartesian coordinates - dot product of 3 points and barycentric coordiantes divided by sum of barycentric coordinates
+            float Px = ((BCx * xBeg) + (BCy * xMid) + (BCz * xEnd)) / (BCx + BCy + BCz);
+            float Py = ((BCx * yBeg) + (BCy * yMid) + (BCz * yEnd)) / (BCx + BCy + BCz);
+            float Pz = ((BCx * zBeg) + (BCy * zMid) + (BCz * zEnd)) / (BCx + BCy + BCz);
+            // define start vetor
+            startVect[0] = (xBeg - Px);
+            startVect[1] = (yBeg - Py);
+            startVect[2] = (zBeg - Pz);
+            // get 3 vectors from center of circle to begining target, mid target and end target then normalize
+            float vect_Amag = pow((pow((xBeg - Px), 2) + pow((yBeg - Py), 2) + pow((zBeg - Pz), 2)), .5);
+            float vect_Ax = (xBeg - Px) / vect_Amag;
+            float vect_Ay = (yBeg - Py) / vect_Amag;
+            float vect_Az = (zBeg - Pz) / vect_Amag;
+            float vect_Bmag = pow((pow((xMid - Px), 2) + pow((yMid - Py), 2) + pow((zMid - Pz), 2)), .5);
+            float vect_Bx = (xMid - Px) / vect_Bmag;
+            float vect_By = (yMid - Py) / vect_Bmag;
+            float vect_Bz = (zMid - Pz) / vect_Bmag;
+            float vect_Cmag = pow((pow((xEnd - Px), 2) + pow((yEnd - Py), 2) + pow((zEnd - Pz), 2)), .5);
+            float vect_Cx = (xEnd - Px) / vect_Cmag;
+            float vect_Cy = (yEnd - Py) / vect_Cmag;
+            float vect_Cz = (zEnd - Pz) / vect_Cmag;
+            // get cross product of vectors a & c than apply to axis matrix
+            float CrossX = (vect_Ay * vect_Bz) - (vect_Az * vect_By);
+            float CrossY = (vect_Az * vect_Bx) - (vect_Ax * vect_Bz);
+            float CrossZ = (vect_Ax * vect_By) - (vect_Ay * vect_Bx);
+            axis[0] = CrossX / sqrt((CrossX * CrossX) + (CrossY * CrossY) + (CrossZ * CrossZ));
+            axis[1] = CrossY / sqrt((CrossX * CrossX) + (CrossY * CrossY) + (CrossZ * CrossZ));
+            axis[2] = CrossZ / sqrt((CrossX * CrossX) + (CrossY * CrossY) + (CrossZ * CrossZ));
+            // get radian angle between vectors using acos of dot product
+            float ABradians = acos((vect_Ax * vect_Bx + vect_Ay * vect_By + vect_Az * vect_Bz) / (sqrt(pow(vect_Ax, 2) + pow(vect_Ay, 2) + pow(vect_Az, 2)) * sqrt(pow(vect_Bx, 2) + pow(vect_By, 2) + pow(vect_Bz, 2))));
+            float BCradians = acos((vect_Bx * vect_Cx + vect_By * vect_Cy + vect_Bz * vect_Cz) / (sqrt(pow(vect_Bx, 2) + pow(vect_By, 2) + pow(vect_Bz, 2)) * sqrt(pow(vect_Cx, 2) + pow(vect_Cy, 2) + pow(vect_Cz, 2))));
+            // get total degrees of both arcs
+            float ABdegrees = degrees(ABradians + BCradians);
+            // get arc length and calc way pt gap
+
+            float anglepercent = ABdegrees / 360;
+            float circumference = 2 * 3.14159265359 * Radius;
+            float lineDist = circumference * anglepercent;
+            float wayPts = lineDist / linWayDistSP;
+
+            float wayPerc = 1 / wayPts;
+            // cacl way pt angle
+            float theta_Deg = (ABdegrees / wayPts);
+
+            // determine steps
+            int HighStep = lineDist / .05;
+            float ACCStep = HighStep * (ACCspd / 100);
+            float NORStep = HighStep * ((100 - ACCspd - DCCspd) / 100);
+            float DCCStep = HighStep * (DCCspd / 100);
+
+            // set speed for seconds or mm per sec
+            if (SpeedType == "s")
+            {
+                speedSP = (SpeedVal * 1000000) * .2;
+            }
+            else if (SpeedType == "m")
+            {
+                speedSP = ((lineDist / SpeedVal) * 1000000) * .2;
+            }
+
+            // calc step gap for seconds or mm per sec
+            if (SpeedType == "s" or SpeedType == "m")
+            {
+                float zeroStepGap = speedSP / HighStep;
+                float zeroACCstepInc = (zeroStepGap * (100 / ACCramp)) / ACCStep;
+                float zeroACCtime = ((ACCStep)*zeroStepGap) + ((ACCStep - 9) * (((ACCStep) * (zeroACCstepInc / 2))));
+                float zeroNORtime = NORStep * zeroStepGap;
+                float zeroDCCstepInc = (zeroStepGap * (100 / ACCramp)) / DCCStep;
+                float zeroDCCtime = ((DCCStep)*zeroStepGap) + ((DCCStep - 9) * (((DCCStep) * (zeroDCCstepInc / 2))));
+                float zeroTOTtime = zeroACCtime + zeroNORtime + zeroDCCtime;
+                float overclockPerc = speedSP / zeroTOTtime;
+                calcStepGap = zeroStepGap * overclockPerc;
+                if (calcStepGap <= minSpeedDelay)
+                {
+                    calcStepGap = minSpeedDelay;
+                    speedViolation = "1";
+                }
+            }
+
+            // calc step gap for percentage
+            else if (SpeedType == "p")
+            {
+                calcStepGap = ((maxSpeedDelay - ((SpeedVal / 100) * maxSpeedDelay)) + minSpeedDelay);
+            }
+
+            // calculate final step increments
+            float calcACCstepInc = (calcStepGap * (100 / ACCramp)) / ACCStep;
+            float calcDCCstepInc = (calcStepGap * (100 / ACCramp)) / DCCStep;
+            float calcACCstartDel = (calcACCstepInc * ACCStep) * 2;
+            float calcDCCendDel = (calcDCCstepInc * DCCStep) * 2;
+
+            // calc way pt speeds
+            float ACCwayPts = wayPts * (ACCspd / 100);
+            float NORwayPts = wayPts * ((100 - ACCspd - DCCspd) / 100);
+            float DCCwayPts = wayPts * (DCCspd / 100);
+
+            // calc way inc for lin way steps
+            float ACCwayInc = (calcACCstartDel - calcStepGap) / ACCwayPts;
+            float DCCwayInc = (calcDCCendDel - calcStepGap) / DCCwayPts;
+
+            // set starting delsy
+            float curDelay = calcACCstartDel;
+
+            // set starting angle first way pt
+            float cur_deg = theta_Deg;
+
+            /////////////////////////////////////
+            // loop through waypoints
+            ////////////////////////////////////
+
+            resetEncoders();
+
+            for (int i = 0; i <= wayPts - 1; i++)
+            {
+
+                theta = radians(cur_deg);
+                // use euler rodrigues formula to find rotation vector
+                a = cos(theta / 2.0);
+                b = -axis[0] * sin(theta / 2.0);
+                c = -axis[1] * sin(theta / 2.0);
+                d = -axis[2] * sin(theta / 2.0);
+                aa = a * a;
+                bb = b * b;
+                cc = c * c;
+                dd = d * d;
+                bc = b * c;
+                ad = a * d;
+                ac = a * c;
+                ab = a * b;
+                bd = b * d;
+                cd = c * d;
+                Rotation[0][0] = aa + bb - cc - dd;
+                Rotation[0][1] = 2 * (bc + ad);
+                Rotation[0][2] = 2 * (bd - ac);
+                Rotation[1][0] = 2 * (bc - ad);
+                Rotation[1][1] = aa + cc - bb - dd;
+                Rotation[1][2] = 2 * (cd + ab);
+                Rotation[2][0] = 2 * (bd + ac);
+                Rotation[2][1] = 2 * (cd - ab);
+                Rotation[2][2] = aa + dd - bb - cc;
+
+                // get product of current rotation and start vector
+                DestPt[0] = (Rotation[0][0] * startVect[0]) + (Rotation[0][1] * startVect[1]) + (Rotation[0][2] * startVect[2]);
+                DestPt[1] = (Rotation[1][0] * startVect[0]) + (Rotation[1][1] * startVect[1]) + (Rotation[1][2] * startVect[2]);
+                DestPt[2] = (Rotation[2][0] * startVect[0]) + (Rotation[2][1] * startVect[1]) + (Rotation[2][2] * startVect[2]);
+
+                ////DELAY CALC/////
+                if (i <= ACCwayPts)
+                {
+                    curDelay = curDelay - (ACCwayInc);
+                }
+                else if (i >= (wayPts - DCCwayPts))
+                {
+                    curDelay = curDelay + (DCCwayInc);
+                }
+                else
+                {
+                    curDelay = calcStepGap;
+                }
+
+                // shift way pts back to orignal origin and calc kinematics for way pt movement
+                float curWayPerc = wayPerc * i;
+                xyzuvw_In[0] = (DestPt[0]) + Px;
+                xyzuvw_In[1] = (DestPt[1]) + Py;
+                xyzuvw_In[2] = (DestPt[2]) + Pz;
+                xyzuvw_In[3] = rzBeg - (RZvect * curWayPerc);
+                xyzuvw_In[4] = ryBeg - (RYvect * curWayPerc);
+                xyzuvw_In[5] = rxBeg - (RXvect * curWayPerc);
+
+                SolveInverseKinematic();
+
+                // calc destination motor steps
+                int J1futStepM = (JangleOut[0] + J1axisLimNeg) * J1StepDeg;
+                int J2futStepM = (JangleOut[1] + J2axisLimNeg) * J2StepDeg;
+                int J3futStepM = (JangleOut[2] + J3axisLimNeg) * J3StepDeg;
+                int J4futStepM = (JangleOut[3] + J4axisLimNeg) * J4StepDeg;
+                int J5futStepM = (JangleOut[4] + J5axisLimNeg) * J5StepDeg;
+                int J6futStepM = (JangleOut[5] + J6axisLimNeg) * J6StepDeg;
+
+                // calc delta from current to destination
+                int J1stepDif = J1StepM - J1futStepM;
+                int J2stepDif = J2StepM - J2futStepM;
+                int J3stepDif = J3StepM - J3futStepM;
+                int J4stepDif = J4StepM - J4futStepM;
+                int J5stepDif = J5StepM - J5futStepM;
+                int J6stepDif = J6StepM - J6futStepM;
+                int TRstepDif = 0;
+
+                TRdir = 0;
+
+                // determine if requested position is within axis limits
+                if ((J1dir == 1 and (J1StepM + J1stepDif > J1StepLim)) or (J1dir == 0 and (J1StepM - J1stepDif < 0)))
+                {
+                    J1axisFault = 1;
+                }
+                if ((J2dir == 1 and (J2StepM + J2stepDif > J2StepLim)) or (J2dir == 0 and (J2StepM - J2stepDif < 0)))
+                {
+                    J2axisFault = 1;
+                }
+                if ((J3dir == 1 and (J3StepM + J3stepDif > J3StepLim)) or (J3dir == 0 and (J3StepM - J3stepDif < 0)))
+                {
+                    J3axisFault = 1;
+                }
+                if ((J4dir == 1 and (J4StepM + J4stepDif > J4StepLim)) or (J4dir == 0 and (J4StepM - J4stepDif < 0)))
+                {
+                    J4axisFault = 1;
+                }
+                if ((J5dir == 1 and (J5StepM + J5stepDif > J5StepLim)) or (J5dir == 0 and (J5StepM - J5stepDif < 0)))
+                {
+                    J5axisFault = 1;
+                }
+                if ((J6dir == 1 and (J6StepM + J6stepDif > J6StepLim)) or (J6dir == 0 and (J6StepM - J6stepDif < 0)))
+                {
+                    J6axisFault = 1;
+                }
+                TotalAxisFault = J1axisFault + J2axisFault + J3axisFault + J4axisFault + J5axisFault + J6axisFault;
+
+                // send move command if no axis limit error
+                if (TotalAxisFault == 0 && KinematicError == 0)
+                {
+                    driveMotorsL(abs(J1stepDif), abs(J2stepDif), abs(J3stepDif), abs(J4stepDif), abs(J5stepDif), abs(J6stepDif), abs(TRstepDif), J1dir, J2dir, J3dir, J4dir, J5dir, J6dir, TRdir, curDelay);
+                }
+                else if (KinematicError == 1)
+                {
+                    Alarm = "ER";
+                    delay(5);
+                    Serial.println(Alarm);
+                }
+                else
+                {
+                    Alarm = "EL" + String(J1axisFault) + String(J2axisFault) + String(J3axisFault) + String(J4axisFault) + String(J5axisFault) + String(J6axisFault);
+                    delay(5);
+                    Serial.println(Alarm);
+                }
+
+                // increment angle
+                cur_deg += theta_Deg;
+            }
+            checkEncoders();
+            sendRobotPos();
+
+            inData = ""; // Clear recieved buffer
+                         ////////MOVE COMPLETE///////////
+        }
+
+        //----- MOVE C (Cirlce) ------------------------------------------------
+        if (function == "MC")
+        {
+            int J1axisFault = 0;
+            int J2axisFault = 0;
+            int J3axisFault = 0;
+            int J4axisFault = 0;
+            int J5axisFault = 0;
+            int J6axisFault = 0;
+            int TotalAxisFault = 0;
+
+            String Alarm = "0";
+            float curWayDis, speedSP, Xvect, Yvect, Zvect, calcStepGap, theta;
+            int Cdir;
+            float axis[3];
+            float axisTemp[3];
+            float startVect[3];
+            float Rotation[3][3];
+            float DestPt[3];
+            float a, b, c, d, aa, bb, cc, dd, bc, ad, ac, ab, bd, cd;
+
+            int xStart = inData.indexOf("Cx");
+            int yStart = inData.indexOf("Cy");
+            int zStart = inData.indexOf("Cz");
+            int rzStart = inData.indexOf("Rz");
+            int ryStart = inData.indexOf("Ry");
+            int rxStart = inData.indexOf("Rx");
+            int xMidIndex = inData.indexOf("Bx");
+            int yMidIndex = inData.indexOf("By");
+            int zMidIndex = inData.indexOf("Bz");
+            int xEndIndex = inData.indexOf("Px");
+            int yEndIndex = inData.indexOf("Py");
+            int zEndIndex = inData.indexOf("Pz");
+            int tStart = inData.indexOf("Tr");
+            int SPstart = inData.indexOf("S");
+            int AcStart = inData.indexOf("Ac");
+            int DcStart = inData.indexOf("Dc");
+            int RmStart = inData.indexOf("Rm");
+            int WristConStart = inData.indexOf("W");
+
+            float xBeg = inData.substring(xStart + 2, yStart).toFloat();
+            float yBeg = inData.substring(yStart + 2, zStart).toFloat();
+            float zBeg = inData.substring(zStart + 2, rzStart).toFloat();
+            float rzBeg = inData.substring(rzStart + 2, ryStart).toFloat();
+            float ryBeg = inData.substring(ryStart + 2, rxStart).toFloat();
+            float rxBeg = inData.substring(rxStart + 2, xMidIndex).toFloat();
+            float xMid = inData.substring(xMidIndex + 2, yMidIndex).toFloat();
+            float yMid = inData.substring(yMidIndex + 2, zMidIndex).toFloat();
+            float zMid = inData.substring(zMidIndex + 2, xEndIndex).toFloat();
+            float xEnd = inData.substring(xEndIndex + 2, yEndIndex).toFloat();
+            float yEnd = inData.substring(yEndIndex + 2, zEndIndex).toFloat();
+            float zEnd = inData.substring(zEndIndex + 2, tStart).toFloat();
+            xyzuvw_In[6] = inData.substring(tStart + 2, SPstart).toFloat();
+            String SpeedType = inData.substring(SPstart + 1, SPstart + 2);
+            float SpeedVal = inData.substring(SPstart + 2, AcStart).toFloat();
+            float ACCspd = inData.substring(AcStart + 2, DcStart).toFloat();
+            float DCCspd = inData.substring(DcStart + 2, RmStart).toFloat();
+            float ACCramp = inData.substring(RmStart + 2, WristConStart).toFloat();
+            WristCon = inData.substring(WristConStart + 1);
+            WristCon.trim();
+
+            // calc vector from start point of circle (mid) to center of circle (beg)
+            Xvect = xMid - xBeg;
+            Yvect = yMid - yBeg;
+            Zvect = zMid - zBeg;
+            // get radius - distance from first point (center of circle) to second point (start point of circle)
+            float Radius = pow((pow((Xvect), 2) + pow((Yvect), 2) + pow((Zvect), 2)), .5);
+
+            // set center coordinates of circle to first point (beg) as this is the center of our circle
+            float Px = xBeg;
+            float Py = yBeg;
+            float Pz = zBeg;
+
+            // define start vetor (mid) point is start of circle
+            startVect[0] = (xMid - Px);
+            startVect[1] = (yMid - Py);
+            startVect[2] = (zMid - Pz);
+            // get vectors from center of circle to  mid target (start) and end target then normalize
+            float vect_Bmag = pow((pow((xMid - Px), 2) + pow((yMid - Py), 2) + pow((zMid - Pz), 2)), .5);
+            float vect_Bx = (xMid - Px) / vect_Bmag;
+            float vect_By = (yMid - Py) / vect_Bmag;
+            float vect_Bz = (zMid - Pz) / vect_Bmag;
+            float vect_Cmag = pow((pow((xEnd - Px), 2) + pow((yEnd - Py), 2) + pow((zEnd - Pz), 2)), .5);
+            float vect_Cx = (xEnd - Px) / vect_Cmag;
+            float vect_Cy = (yEnd - Py) / vect_Cmag;
+            float vect_Cz = (zEnd - Pz) / vect_Cmag;
+            // get cross product of vectors b & c than apply to axis matrix
+            float CrossX = (vect_By * vect_Cz) - (vect_Bz * vect_Cy);
+            float CrossY = (vect_Bz * vect_Cx) - (vect_Bx * vect_Cz);
+            float CrossZ = (vect_Bx * vect_Cy) - (vect_By * vect_Cx);
+            axis[0] = CrossX / sqrt((CrossX * CrossX) + (CrossY * CrossY) + (CrossZ * CrossZ));
+            axis[1] = CrossY / sqrt((CrossX * CrossX) + (CrossY * CrossY) + (CrossZ * CrossZ));
+            axis[2] = CrossZ / sqrt((CrossX * CrossX) + (CrossY * CrossY) + (CrossZ * CrossZ));
+            // get radian angle between vectors using acos of dot product
+            float BCradians = acos((vect_Bx * vect_Cx + vect_By * vect_Cy + vect_Bz * vect_Cz) / (sqrt(pow(vect_Bx, 2) + pow(vect_Cy, 2) + pow(vect_Bz, 2)) * sqrt(pow(vect_Cx, 2) + pow(vect_Cy, 2) + pow(vect_Cz, 2))));
+            // get arc degree
+            float ABdegrees = degrees(BCradians);
+            // get direction from angle
+            if (ABdegrees > 0)
+            {
+                Cdir = 1;
+            }
+            else
+            {
+                Cdir = -1;
+            }
+
+            // get circumference and calc way pt gap
+            float lineDist = 2 * 3.14159265359 * Radius;
+            float wayPts = lineDist / linWayDistSP;
+
+            float wayPerc = 1 / wayPts;
+            // cacl way pt angle
+            float theta_Deg = ((360 * Cdir) / (wayPts));
+
+            // determine steps
+            int HighStep = lineDist / .05;
+            float ACCStep = HighStep * (ACCspd / 100);
+            float NORStep = HighStep * ((100 - ACCspd - DCCspd) / 100);
+            float DCCStep = HighStep * (DCCspd / 100);
+
+            // set speed for seconds or mm per sec
+            if (SpeedType == "s")
+            {
+                speedSP = (SpeedVal * 1000000) * .2;
+            }
+            else if (SpeedType == "m")
+            {
+                speedSP = ((lineDist / SpeedVal) * 1000000) * .2;
+            }
+
+            // calc step gap for seconds or mm per sec
+            if (SpeedType == "s" or SpeedType == "m")
+            {
+                float zeroStepGap = speedSP / HighStep;
+                float zeroACCstepInc = (zeroStepGap * (100 / ACCramp)) / ACCStep;
+                float zeroACCtime = ((ACCStep)*zeroStepGap) + ((ACCStep - 9) * (((ACCStep) * (zeroACCstepInc / 2))));
+                float zeroNORtime = NORStep * zeroStepGap;
+                float zeroDCCstepInc = (zeroStepGap * (100 / ACCramp)) / DCCStep;
+                float zeroDCCtime = ((DCCStep)*zeroStepGap) + ((DCCStep - 9) * (((DCCStep) * (zeroDCCstepInc / 2))));
+                float zeroTOTtime = zeroACCtime + zeroNORtime + zeroDCCtime;
+                float overclockPerc = speedSP / zeroTOTtime;
+                calcStepGap = zeroStepGap * overclockPerc;
+                if (calcStepGap <= minSpeedDelay)
+                {
+                    calcStepGap = minSpeedDelay;
+                    speedViolation = "1";
+                }
+            }
+
+            // calc step gap for percentage
+            else if (SpeedType == "p")
+            {
+                calcStepGap = ((maxSpeedDelay - ((SpeedVal / 100) * maxSpeedDelay)) + minSpeedDelay);
+            }
+
+            // calculate final step increments
+            float calcACCstepInc = (calcStepGap * (100 / ACCramp)) / ACCStep;
+            float calcDCCstepInc = (calcStepGap * (100 / ACCramp)) / DCCStep;
+            float calcACCstartDel = (calcACCstepInc * ACCStep) * 2;
+            float calcDCCendDel = (calcDCCstepInc * DCCStep) * 2;
+
+            // calc way pt speeds
+            float ACCwayPts = wayPts * (ACCspd / 100);
+            float NORwayPts = wayPts * ((100 - ACCspd - DCCspd) / 100);
+            float DCCwayPts = wayPts * (DCCspd / 100);
+
+            // calc way inc for lin way steps
+            float ACCwayInc = (calcACCstartDel - calcStepGap) / ACCwayPts;
+            float DCCwayInc = (calcDCCendDel - calcStepGap) / DCCwayPts;
+
+            // set starting delsy
+            float curDelay = calcACCstartDel;
+
+            // set starting angle first way pt
+            float cur_deg = theta_Deg;
+
+            /////////////////////////////////////
+            // loop through waypoints
+            ////////////////////////////////////
+
+            resetEncoders();
+
+            for (int i = 1; i <= wayPts; i++)
+            {
+
+                theta = radians(cur_deg);
+                // use euler rodrigues formula to find rotation vector
+                a = cos(theta / 2.0);
+                b = -axis[0] * sin(theta / 2.0);
+                c = -axis[1] * sin(theta / 2.0);
+                d = -axis[2] * sin(theta / 2.0);
+                aa = a * a;
+                bb = b * b;
+                cc = c * c;
+                dd = d * d;
+                bc = b * c;
+                ad = a * d;
+                ac = a * c;
+                ab = a * b;
+                bd = b * d;
+                cd = c * d;
+                Rotation[0][0] = aa + bb - cc - dd;
+                Rotation[0][1] = 2 * (bc + ad);
+                Rotation[0][2] = 2 * (bd - ac);
+                Rotation[1][0] = 2 * (bc - ad);
+                Rotation[1][1] = aa + cc - bb - dd;
+                Rotation[1][2] = 2 * (cd + ab);
+                Rotation[2][0] = 2 * (bd + ac);
+                Rotation[2][1] = 2 * (cd - ab);
+                Rotation[2][2] = aa + dd - bb - cc;
+
+                // get product of current rotation and start vector
+                DestPt[0] = (Rotation[0][0] * startVect[0]) + (Rotation[0][1] * startVect[1]) + (Rotation[0][2] * startVect[2]);
+                DestPt[1] = (Rotation[1][0] * startVect[0]) + (Rotation[1][1] * startVect[1]) + (Rotation[1][2] * startVect[2]);
+                DestPt[2] = (Rotation[2][0] * startVect[0]) + (Rotation[2][1] * startVect[1]) + (Rotation[2][2] * startVect[2]);
+
+                ////DELAY CALC/////
+                if (i <= ACCwayPts)
+                {
+                    curDelay = curDelay - (ACCwayInc);
+                }
+                else if (i >= (wayPts - DCCwayPts))
+                {
+                    curDelay = curDelay + (DCCwayInc);
+                }
+                else
+                {
+                    curDelay = calcStepGap;
+                }
+
+                // shift way pts back to orignal origin and calc kinematics for way pt movement
+                xyzuvw_In[0] = (DestPt[0]) + Px;
+                xyzuvw_In[1] = (DestPt[1]) + Py;
+                xyzuvw_In[2] = (DestPt[2]) + Pz;
+                xyzuvw_In[3] = rzBeg;
+                xyzuvw_In[4] = ryBeg;
+                xyzuvw_In[5] = rxBeg;
+
+                SolveInverseKinematic();
+
+                // calc destination motor steps
+                int J1futStepM = (JangleOut[0] + J1axisLimNeg) * J1StepDeg;
+                int J2futStepM = (JangleOut[1] + J2axisLimNeg) * J2StepDeg;
+                int J3futStepM = (JangleOut[2] + J3axisLimNeg) * J3StepDeg;
+                int J4futStepM = (JangleOut[3] + J4axisLimNeg) * J4StepDeg;
+                int J5futStepM = (JangleOut[4] + J5axisLimNeg) * J5StepDeg;
+                int J6futStepM = (JangleOut[5] + J6axisLimNeg) * J6StepDeg;
+
+                // calc delta from current to destination
+                int J1stepDif = J1StepM - J1futStepM;
+                int J2stepDif = J2StepM - J2futStepM;
+                int J3stepDif = J3StepM - J3futStepM;
+                int J4stepDif = J4StepM - J4futStepM;
+                int J5stepDif = J5StepM - J5futStepM;
+                int J6stepDif = J6StepM - J6futStepM;
+                int TRstepDif = 0;
+
+                // determine if requested position is within axis limits
+                if ((J1dir == 1 and (J1StepM + J1stepDif > J1StepLim)) or (J1dir == 0 and (J1StepM - J1stepDif < 0)))
+                {
+                    J1axisFault = 1;
+                }
+                if ((J2dir == 1 and (J2StepM + J2stepDif > J2StepLim)) or (J2dir == 0 and (J2StepM - J2stepDif < 0)))
+                {
+                    J2axisFault = 1;
+                }
+                if ((J3dir == 1 and (J3StepM + J3stepDif > J3StepLim)) or (J3dir == 0 and (J3StepM - J3stepDif < 0)))
+                {
+                    J3axisFault = 1;
+                }
+                if ((J4dir == 1 and (J4StepM + J4stepDif > J4StepLim)) or (J4dir == 0 and (J4StepM - J4stepDif < 0)))
+                {
+                    J4axisFault = 1;
+                }
+                if ((J5dir == 1 and (J5StepM + J5stepDif > J5StepLim)) or (J5dir == 0 and (J5StepM - J5stepDif < 0)))
+                {
+                    J5axisFault = 1;
+                }
+                if ((J6dir == 1 and (J6StepM + J6stepDif > J6StepLim)) or (J6dir == 0 and (J6StepM - J6stepDif < 0)))
+                {
+                    J6axisFault = 1;
+                }
+                TotalAxisFault = J1axisFault + J2axisFault + J3axisFault + J4axisFault + J5axisFault + J6axisFault;
+
+                if (TotalAxisFault == 0 && KinematicError == 0)
+                {
+                    driveMotorsL(abs(J1stepDif), abs(J2stepDif), abs(J3stepDif), abs(J4stepDif), abs(J5stepDif), abs(J6stepDif), abs(TRstepDif), J1dir, J2dir, J3dir, J4dir, J5dir, J6dir, TRdir, curDelay);
+                }
+                else if (KinematicError == 1)
+                {
+                    Alarm = "ER";
+                    delay(5);
+                    Serial.println(Alarm);
+                }
+                else
+                {
+                    Alarm = "EL" + String(J1axisFault) + String(J2axisFault) + String(J3axisFault) + String(J4axisFault) + String(J5axisFault) + String(J6axisFault);
+                    delay(5);
+                    Serial.println(Alarm);
+                }
+
+                // increment angle
+                cur_deg += theta_Deg;
+            }
+
+            checkEncoders();
+            sendRobotPos();
+
+            inData = ""; // Clear recieved buffer
+                         ////////MOVE COMPLETE///////////
+        }
+
+        //----- MOVE L ---------------------------------------------------------
+        if (function == "ML")
+        {
+            int J1axisFault = 0;
+            int J2axisFault = 0;
+            int J3axisFault = 0;
+            int J4axisFault = 0;
+            int J5axisFault = 0;
+            int J6axisFault = 0;
+            int TRaxisFault = 0;
+            int TotalAxisFault = 0;
+
+            String Alarm = "0";
+
+            float curWayDis;
+            float speedSP;
+
+            int xStart = inData.indexOf("X");
+            int yStart = inData.indexOf("Y");
+            int zStart = inData.indexOf("Z");
+            int rzStart = inData.indexOf("Rz");
+            int ryStart = inData.indexOf("Ry");
+            int rxStart = inData.indexOf("Rx");
+            int tStart = inData.indexOf("Tr");
+            int SPstart = inData.indexOf("S");
+            int AcStart = inData.indexOf("Ac");
+            int DcStart = inData.indexOf("Dc");
+            int RmStart = inData.indexOf("Rm");
+            int WristConStart = inData.indexOf("W");
+
+            xyzuvw_In[0] = inData.substring(xStart + 1, yStart).toFloat();
+            xyzuvw_In[1] = inData.substring(yStart + 1, zStart).toFloat();
+            xyzuvw_In[2] = inData.substring(zStart + 1, rzStart).toFloat();
+            xyzuvw_In[3] = inData.substring(rzStart + 2, ryStart).toFloat();
+            xyzuvw_In[4] = inData.substring(ryStart + 2, rxStart).toFloat();
+            xyzuvw_In[5] = inData.substring(rxStart + 2, tStart).toFloat();
+            xyzuvw_In[6] = inData.substring(tStart + 2, SPstart).toFloat();
+
+            String SpeedType = inData.substring(SPstart + 1, SPstart + 2);
+            float SpeedVal = inData.substring(SPstart + 2, AcStart).toFloat();
+            float ACCspd = inData.substring(AcStart + 2, DcStart).toFloat();
+            float DCCspd = inData.substring(DcStart + 2, RmStart).toFloat();
+            float ACCramp = inData.substring(RmStart + 2, WristConStart).toFloat();
+
+            WristCon = inData.substring(WristConStart + 1);
+            WristCon.trim();
+
+            // vector
+            float Xvect = xyzuvw_In[0] - xyzuvw_Out[0];
+            float Yvect = xyzuvw_In[1] - xyzuvw_Out[1];
+            float Zvect = xyzuvw_In[2] - xyzuvw_Out[2];
+            float RZvect = xyzuvw_In[3] - xyzuvw_Out[3];
+            float RYvect = xyzuvw_In[4] - xyzuvw_Out[4];
+            float RXvect = xyzuvw_In[5] - xyzuvw_Out[5];
+
+            // start pos
+            float Xstart = xyzuvw_Out[0];
+            float Ystart = xyzuvw_Out[1];
+            float Zstart = xyzuvw_Out[2];
+            float RZstart = xyzuvw_Out[3];
+            float RYstart = xyzuvw_Out[4];
+            float RXstart = xyzuvw_Out[5];
+
+            // line dist and determine way point gap
+            float lineDist = pow((pow((Xvect), 2) + pow((Yvect), 2) + pow((Zvect), 2) + pow((RZvect), 2) + pow((RYvect), 2) + pow((RXvect), 2)), .5);
+            if (lineDist > 0)
+            {
+                float wayPts = lineDist / linWayDistSP;
+                float wayPerc = 1 / wayPts;
+
+                // pre calculate entire move and speeds
+                SolveInverseKinematic();
+
+                // calc destination motor steps for precalc
+                int J1futStepM = (JangleOut[0] + J1axisLimNeg) * J1StepDeg;
+                int J2futStepM = (JangleOut[1] + J2axisLimNeg) * J2StepDeg;
+                int J3futStepM = (JangleOut[2] + J3axisLimNeg) * J3StepDeg;
+                int J4futStepM = (JangleOut[3] + J4axisLimNeg) * J4StepDeg;
+                int J5futStepM = (JangleOut[4] + J5axisLimNeg) * J5StepDeg;
+                int J6futStepM = (JangleOut[5] + J6axisLimNeg) * J6StepDeg;
+
+                // calc delta from current to destination fpr precalc
+                int J1stepDif = J1StepM - J1futStepM;
+                int J2stepDif = J2StepM - J2futStepM;
+                int J3stepDif = J3StepM - J3futStepM;
+                int J4stepDif = J4StepM - J4futStepM;
+                int J5stepDif = J5StepM - J5futStepM;
+                int J6stepDif = J6StepM - J6futStepM;
+
+                // FIND HIGHEST STEP FOR PRECALC
+                int HighStep = J1stepDif;
+                if (J2stepDif > HighStep)
+                {
+                    HighStep = J2stepDif;
+                }
+                if (J3stepDif > HighStep)
+                {
+                    HighStep = J3stepDif;
+                }
+                if (J4stepDif > HighStep)
+                {
+                    HighStep = J4stepDif;
+                }
+                if (J5stepDif > HighStep)
+                {
+                    HighStep = J5stepDif;
+                }
+                if (J6stepDif > HighStep)
+                {
+                    HighStep = J6stepDif;
+                }
+
+                /////PRE CALC SPEEDS//////
+                float calcStepGap;
+
+                // determine steps
+                float ACCStep = HighStep * (ACCspd / 100);
+                float NORStep = HighStep * ((100 - ACCspd - DCCspd) / 100);
+                float DCCStep = HighStep * (DCCspd / 100);
+
+                // set speed for seconds or mm per sec
+                if (SpeedType == "s")
+                {
+                    speedSP = (SpeedVal * 1000000) * .2;
+                }
+                else if ((SpeedType == "m"))
+                {
+                    speedSP = ((lineDist / SpeedVal) * 1000000) * .2;
+                }
+
+                // calc step gap for seconds or mm per sec
+                if (SpeedType == "s" or SpeedType == "m")
+                {
+                    float zeroStepGap = speedSP / HighStep;
+                    float zeroACCstepInc = (zeroStepGap * (100 / ACCramp)) / ACCStep;
+                    float zeroACCtime = ((ACCStep)*zeroStepGap) + ((ACCStep - 9) * (((ACCStep) * (zeroACCstepInc / 2))));
+                    float zeroNORtime = NORStep * zeroStepGap;
+                    float zeroDCCstepInc = (zeroStepGap * (100 / ACCramp)) / DCCStep;
+                    float zeroDCCtime = ((DCCStep)*zeroStepGap) + ((DCCStep - 9) * (((DCCStep) * (zeroDCCstepInc / 2))));
+                    float zeroTOTtime = zeroACCtime + zeroNORtime + zeroDCCtime;
+                    float overclockPerc = speedSP / zeroTOTtime;
+                    calcStepGap = zeroStepGap * overclockPerc;
+                    if (calcStepGap <= minSpeedDelay)
+                    {
+                        calcStepGap = minSpeedDelay;
+                        speedViolation = "1";
+                    }
+                }
+
+                // calc step gap for percentage
+                else if (SpeedType == "p")
+                {
+                    calcStepGap = ((maxSpeedDelay - ((SpeedVal / 100) * maxSpeedDelay)) + minSpeedDelay);
+                }
+
+                // calculate final step increments
+                float calcACCstepInc = (calcStepGap * (100 / ACCramp)) / ACCStep;
+                float calcDCCstepInc = (calcStepGap * (100 / ACCramp)) / DCCStep;
+                float calcACCstartDel = (calcACCstepInc * ACCStep) * 2;
+                float calcDCCendDel = (calcDCCstepInc * DCCStep) * 2;
+
+                // calc way pt speeds
+                float ACCwayPts = wayPts * (ACCspd / 100);
+                float NORwayPts = wayPts * ((100 - ACCspd - DCCspd) / 100);
+                float DCCwayPts = wayPts * (DCCspd / 100);
+
+                // calc way inc for lin way steps
+                float ACCwayInc = (calcACCstartDel - calcStepGap) / ACCwayPts;
+                float DCCwayInc = (calcDCCendDel - calcStepGap) / DCCwayPts;
+
+                // set starting delsy
+                float curDelay = calcACCstartDel;
+
+                // calc track way pt moves
+                int TRfutStepM = (xyzuvw_In[6] + TRaxisLimNeg) * TRStepDeg;
+                int TRstepDif = (TRStepM - TRfutStepM) / (wayPts - 1);
+                if (TRstepDif <= 0)
+                {
+                    TRdir = 1;
+                }
+                else
+                {
+                    TRdir = 0;
+                }
+
+                resetEncoders();
+                /////////////////
+                // loop through waypoints
+                for (int i = 1; i <= wayPts; i++)
+                {
+                    ////DELAY CALC/////
+                    if (i <= ACCwayPts)
+                    {
+                        curDelay = curDelay - (ACCwayInc);
+                    }
+                    else if (i >= (wayPts - DCCwayPts))
+                    {
+                        curDelay = curDelay + (DCCwayInc);
+                    }
+                    else
+                    {
+                        curDelay = calcStepGap;
+                    }
+
+                    if (debugg == 1)
+                    {
+                        curDelay = 0;
+                    }
+
+                    float curWayPerc = wayPerc * i;
+                    xyzuvw_In[0] = Xstart + (Xvect * curWayPerc);
+                    xyzuvw_In[1] = Ystart + (Yvect * curWayPerc);
+                    xyzuvw_In[2] = Zstart + (Zvect * curWayPerc);
+                    xyzuvw_In[3] = RZstart + (RZvect * curWayPerc);
+                    xyzuvw_In[4] = RYstart + (RYvect * curWayPerc);
+                    xyzuvw_In[5] = RXstart + (RXvect * curWayPerc);
+
+                    SolveInverseKinematic();
+
+                    // calc destination motor steps
+                    int J1futStepM = (JangleOut[0] + J1axisLimNeg) * J1StepDeg;
+                    int J2futStepM = (JangleOut[1] + J2axisLimNeg) * J2StepDeg;
+                    int J3futStepM = (JangleOut[2] + J3axisLimNeg) * J3StepDeg;
+                    int J4futStepM = (JangleOut[3] + J4axisLimNeg) * J4StepDeg;
+                    int J5futStepM = (JangleOut[4] + J5axisLimNeg) * J5StepDeg;
+                    int J6futStepM = (JangleOut[5] + J6axisLimNeg) * J6StepDeg;
+
+                    // calc delta from current to destination
+                    int J1stepDif = J1StepM - J1futStepM;
+                    int J2stepDif = J2StepM - J2futStepM;
+                    int J3stepDif = J3StepM - J3futStepM;
+                    int J4stepDif = J4StepM - J4futStepM;
+                    int J5stepDif = J5StepM - J5futStepM;
+                    int J6stepDif = J6StepM - J6futStepM;
+
+                    // determine if requested position is within axis limits
+                    if ((J1dir == 1 and (J1StepM + J1stepDif > J1StepLim)) or (J1dir == 0 and (J1StepM - J1stepDif < 0)))
+                    {
+                        J1axisFault = 1;
+                    }
+                    if ((J2dir == 1 and (J2StepM + J2stepDif > J2StepLim)) or (J2dir == 0 and (J2StepM - J2stepDif < 0)))
+                    {
+                        J2axisFault = 1;
+                    }
+                    if ((J3dir == 1 and (J3StepM + J3stepDif > J3StepLim)) or (J3dir == 0 and (J3StepM - J3stepDif < 0)))
+                    {
+                        J3axisFault = 1;
+                    }
+                    if ((J4dir == 1 and (J4StepM + J4stepDif > J4StepLim)) or (J4dir == 0 and (J4StepM - J4stepDif < 0)))
+                    {
+                        J4axisFault = 1;
+                    }
+                    if ((J5dir == 1 and (J5StepM + J5stepDif > J5StepLim)) or (J5dir == 0 and (J5StepM - J5stepDif < 0)))
+                    {
+                        J5axisFault = 1;
+                    }
+                    if ((J6dir == 1 and (J6StepM + J6stepDif > J6StepLim)) or (J6dir == 0 and (J6StepM - J6stepDif < 0)))
+                    {
+                        J6axisFault = 1;
+                    }
+                    if ((TRdir == 1 and (TRStepM + TRstepDif > TRStepLim)) or (TRdir == 0 and (TRStepM - TRstepDif < 0)))
+                    {
+                        TRaxisFault = 1;
+                    }
+                    TotalAxisFault = J1axisFault + J2axisFault + J3axisFault + J4axisFault + J5axisFault + J6axisFault + TRaxisFault;
+
+                    // send move command if no axis limit error
+                    if (TotalAxisFault == 0 && KinematicError == 0)
+                    {
+                        driveMotorsL(abs(J1stepDif), abs(J2stepDif), abs(J3stepDif), abs(J4stepDif), abs(J5stepDif), abs(J6stepDif), abs(TRstepDif), J1dir, J2dir, J3dir, J4dir, J5dir, J6dir, TRdir, curDelay);
+                        updatePos();
+                    }
+                    else if (KinematicError == 1)
+                    {
+                        Alarm = "ER";
+                        delay(5);
+                        Serial.println(Alarm);
+                    }
+                    else
+                    {
+                        Alarm = "EL" + String(J1axisFault) + String(J2axisFault) + String(J3axisFault) + String(J4axisFault) + String(J5axisFault) + String(J6axisFault) + String(TRaxisFault);
+                        delay(5);
+                        Serial.println(Alarm);
+                    }
+                }
+            }
+
+            inData = ""; // Clear recieved buffer
+            ////////MOVE COMPLETE///////////
+        }
+    }
 };
+
+void jog(type){
+    "ARC"
+    "LIN"
+    "CRC"
+    
+    
+    
+    };
+}
+;
