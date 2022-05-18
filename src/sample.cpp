@@ -1,10 +1,8 @@
-//set encoder multiplier
-const float J1encMult = 10;
-const float J2encMult = 10;
-const float J3encMult = 10;
-const float J4encMult = 10;
-const float J5encMult = 5;
-const float J6encMult = 10;
+
+int WayPtDel;
+volatile byte state = LOW;
+
+const int debugg = 0;
 
 // GLOBAL VARS //
 
@@ -32,15 +30,6 @@ float J4axisLim = J4axisLimPos + J4axisLimNeg;
 float J5axisLim = J5axisLimPos + J5axisLimNeg;
 float J6axisLim = J6axisLimPos + J6axisLimNeg;
 float TRaxisLim = TRaxisLimPos + TRaxisLimNeg;
-
-//motor steps per degree
-float J1StepDeg = 44.44444444;
-float J2StepDeg = 55.55555556;
-float J3StepDeg = 55.55555556;
-float J4StepDeg = 42.72664356;
-float J5StepDeg = 21.86024888;
-float J6StepDeg = 22.22222222;
-float TRStepDeg = 14.28571429;
 
 //steps full movement of each axis
 int J1StepLim = J1axisLim * J1StepDeg;

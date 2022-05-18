@@ -48,7 +48,8 @@
 #include <Encoder.h>
 
 #define ROBOT_nDOFs 6
-#define CALIB_SPEED 1
+#define CALIB_SPEED 1 // deg/s
+#define WIGGLE_FACTOR 15
 
 // Setup Steppers
 AccelStepper stepper1(0, 1);
@@ -77,40 +78,9 @@ class AR4 : public MultiAxis<ROBOT_nDOFs>
 
 public:
     Axis tool;
-    AR4()
-    {
-        // Grab Stepper Objects
-        steppers[0] = &stepper1;
-        steppers[1] = &stepper2;
-        steppers[2] = &stepper3;
-        steppers[3] = &stepper4;
-        steppers[4] = &stepper5;
-        steppers[5] = &stepper6;
-        
-        // Grab Encoder Objects
-        encoders[0] = encoder1;
-        encoders[1] = encoder2;
-        encoders[2] = encoder3;
-        encoders[3] = encoder4;
-        encoders[4] = encoder5;
-        encoders[5] = encoder6;
-
-        // Set Axis Degree Limits
-        axis[0].setLimits(-170, 170);
-        axis[1].setLimits(-42, 90);
-        axis[2].setLimits(-89, 52);
-        axis[3].setLimits(-165, 165);
-        axis[4].setLimits(-105, 105);
-        axis[5].setLimits(-155, 155);
-
-        tool.setLimits(0, 3450);
-
-        for (int i = 0; i < ROBOT_nDOFs; i++)
-            pinMode(calib_pins[i], INPUT);
-    }
-
     bool collision_states[ROBOT_nDOFs];
 
+    // Steps per degree on each axis
     const float step_deg[ROBOT_nDOFs] = {44.44444444,
                                          55.55555556,
                                          55.55555556,
@@ -121,6 +91,42 @@ public:
     const float enc_mult[ROBOT_nDOFs] = {10, 10, 10, 10, 5, 10};
 
     const float tool_step_deg = 14.28571429;
+
+    AR4()
+    {
+        // Grab Stepper Objects
+        steppers[0] = &stepper1;
+        steppers[1] = &stepper2;
+        steppers[2] = &stepper3;
+        steppers[3] = &stepper4;
+        steppers[4] = &stepper5;
+        steppers[5] = &stepper6;
+
+        // Grab Encoder Objects
+        encoders[0] = &encoder1;
+        encoders[1] = &encoder2;
+        encoders[2] = &encoder3;
+        encoders[3] = &encoder4;
+        encoders[4] = &encoder5;
+        encoders[5] = &encoder6;
+
+        // Set Axis Degree Limits
+        axis[0].setLimits(-170, 170);
+        axis[1].setLimits(-42, 90);
+        axis[2].setLimits(-89, 52);
+        axis[3].setLimits(-165, 165);
+        axis[4].setLimits(-105, 105);
+        axis[5].setLimits(-155, 155);
+
+        for (int i = 0; i < ROBOT_nDOFs; i++)
+            axis[i].setResolution(WIGGLE_FACTOR * (1L / step_deg[i]));
+
+        tool.setLimits(0, 3450);
+        tool.setResolution((1L / tool_step_deg) * WIGGLE_FACTOR);
+
+        for (int i = 0; i < ROBOT_nDOFs; i++)
+            pinMode(calib_pins[i], INPUT);
+    }
 
     void calibrate()
     {
@@ -138,14 +144,21 @@ public:
         for (int i = 0; i < 6; i++)
             *(axis_positions) = (steppers[i]->currentPosition() / step_deg[i]);
 
-            // J1EncSteps = J1encPos.read() / J1encMult;
+        // J1EncSteps = encoders[i]->read() / enc_mult[i];
 
+        // Check for collisions
+        int TotalCollision = 0;
+        for (int i = 0; i < ROBOT_nDOFs; i++)
+            TotalCollision += (int)collision_states[i];
+
+        // if (TotalCollision > 0)
+        // {
+        //     flag = "EC" + String(J1collisionTrue) + String(J2collisionTrue) + String(J3collisionTrue) + String(J4collisionTrue) + String(J5collisionTrue) + String(J6collisionTrue);
+        // }
     };
 
     void updateMotorSpeeds(double *axis_speeds)
     {
-
-        
         for (int i = 0; i < 6; i++)
             *(axis_positions) = (steppers[i]->currentPosition() / step_deg[i]);
 
@@ -163,43 +176,38 @@ public:
 private:
     AccelStepper *steppers[ROBOT_nDOFs];
     Encoder *encoders[ROBOT_nDOFs];
+
+    void checkEncoders()
+    {
+        // read encoders
+        J1EncSteps = J1encPos.read() / J1encMult;
+        J2EncSteps = J2encPos.read() / J2encMult;
+        J3EncSteps = J3encPos.read() / J3encMult;
+        J4EncSteps = J4encPos.read() / J4encMult;
+        J5EncSteps = J5encPos.read() / J5encMult;
+        J6EncSteps = J6encPos.read() / J6encMult;
+
+        if (abs((J1EncSteps - J1StepM)) >= 15)
+        {
+            J1collisionTrue = 1;
+        }
+        ...
+        ...
+        ...
+    }
+
+    void resetEncoders()
+    {
+        // set encoders to current position
+        for (int i = 0; i < ROBOT_nDOFs; i++)
+            collision_states[i] = false;
+
+        //  for (int i = 0; i < ROBOT_nDOFs; i++) encoders[i]->write();
+        J1encPos.write(J1StepM * J1encMult);
+        J2encPos.write(J2StepM * J2encMult);
+        J3encPos.write(J3StepM * J3encMult);
+        J4encPos.write(J4StepM * J4encMult);
+        J5encPos.write(J5StepM * J5encMult);
+        J6encPos.write(J6StepM * J6encMult);
+    }
 };
-
-void checkEncoders()
-{
-    // read encoders
-    J1EncSteps = J1encPos.read() / J1encMult;
-    J2EncSteps = J2encPos.read() / J2encMult;
-    J3EncSteps = J3encPos.read() / J3encMult;
-    J4EncSteps = J4encPos.read() / J4encMult;
-    J5EncSteps = J5encPos.read() / J5encMult;
-    J6EncSteps = J6encPos.read() / J6encMult;
-
-    if (abs((J1EncSteps - J1StepM)) >= 15)
-    {
-        J1collisionTrue = 1;
-    }
-    ...
-    ...
-    ...
-
-    TotalCollision = J1collisionTrue + J2collisionTrue + J3collisionTrue + J4collisionTrue + J5collisionTrue + J6collisionTrue;
-    if (TotalCollision > 0)
-    {
-        flag = "EC" + String(J1collisionTrue) + String(J2collisionTrue) + String(J3collisionTrue) + String(J4collisionTrue) + String(J5collisionTrue) + String(J6collisionTrue);
-    }
-}
-
-void resetEncoders()
-{
-   for (int i =0; i < ROBOT_nDOFs; i++) collision_states[i] = false;
-
-    // set encoders to current position
-    J1encPos.write(J1StepM * J1encMult);
-    J2encPos.write(J2StepM * J2encMult);
-    J3encPos.write(J3StepM * J3encMult);
-    J4encPos.write(J4StepM * J4encMult);
-    J5encPos.write(J5StepM * J5encMult);
-    J6encPos.write(J6StepM * J6encMult);
-}
-}

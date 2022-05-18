@@ -1,77 +1,15 @@
-String inData;
-String function;
 
-const int debugg = 0;
+//DENAVIT HARTENBERG PARAMETERS SAME AS ROBODK
 
-//set encoder multiplier
-const float J1encMult = 10;
-const float J2encMult = 10;
-const float J3encMult = 10;
-const float J4encMult = 10;
-const float J5encMult = 5;
-const float J6encMult = 10;
+float DHparams[6][4] = {
+  {    0,      0,  169.77,      0  },
+  {  -90,    -90,       0,   64.2  },
+  {    0,      0,       0,    305  },
+  {    0,    -90,  222.63,      0  },
+  {    0,     90,       0,      0  },
+  {  180,    -90,   36.25,      0  }
+};
 
-//define total axis travel
-float J1axisLim = J1axisLimPos + J1axisLimNeg;
-float J2axisLim = J2axisLimPos + J2axisLimNeg;
-float J3axisLim = J3axisLimPos + J3axisLimNeg;
-float J4axisLim = J4axisLimPos + J4axisLimNeg;
-float J5axisLim = J5axisLimPos + J5axisLimNeg;
-float J6axisLim = J6axisLimPos + J6axisLimNeg;
-float TRaxisLim = TRaxisLimPos + TRaxisLimNeg;
-
-//steps full movement of each axis
-int J1StepLim = J1axisLim * J1StepDeg;
-int J2StepLim = J2axisLim * J2StepDeg;
-int J3StepLim = J3axisLim * J3StepDeg;
-int J4StepLim = J4axisLim * J4StepDeg;
-int J5StepLim = J5axisLim * J5StepDeg;
-int J6StepLim = J6axisLim * J6StepDeg;
-int TRStepLim = TRaxisLim * TRStepDeg;
-
-//step and axis zero
-int J1zeroStep = J1axisLimNeg * J1StepDeg;
-int J2zeroStep = J2axisLimNeg * J2StepDeg;
-int J3zeroStep = J3axisLimNeg * J3StepDeg;
-int J4zeroStep = J4axisLimNeg * J4StepDeg;
-int J5zeroStep = J5axisLimNeg * J5StepDeg;
-int J6zeroStep = J6axisLimNeg * J6StepDeg;
-
-//start master step count at Jzerostep
-int J1StepM = J1zeroStep;
-int J2StepM = J2zeroStep;
-int J3StepM = J3zeroStep;
-int J4StepM = J4zeroStep;
-int J5StepM = J5zeroStep;
-int J6StepM = J6zeroStep;
-int TRStepM = TRaxisLimNeg * TRStepDeg;
-
-int TotalCollision = 0;
-int KinematicError = 0;
-
-float axis7length;
-float axis7rot;
-float axis7steps;
-
-float lineDist;
-
-String WristCon;
-
-String Alarm = "0";
-String speedViolation = "0";
-float maxSpeedDelay = 3000;
-float minSpeedDelay = 350;
-float linWayDistSP = 2;
-String debug = "";
-String flag = "";
-const int TRACKrotdir = 0;
-
-int J1EncSteps;
-int J2EncSteps;
-int J3EncSteps;
-int J4EncSteps;
-int J5EncSteps;
-int J6EncSteps;
 
 #define ROBOT_nDOFs 6
 typedef float tRobotJoints[ROBOT_nDOFs];
@@ -3070,6 +3008,7 @@ void setup() {
 void loop() {
 
   //start loop
+  WayPtDel = 0;
   while (Serial.available())
   {
     char recieved = Serial.read();
@@ -6228,4 +6167,16 @@ void loop() {
       }
     }
   }
+}
+
+
+class IkController {
+
+void move(type){
+
+    "ARC"
+    "LIN"
+    
+}
+
 }
