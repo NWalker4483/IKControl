@@ -78,6 +78,7 @@ class AR4 : public MultiAxis<ROBOT_nDOFs>
 
 public:
     Axis tool;
+    Axis track;
     bool collision_states[ROBOT_nDOFs];
 
     // Steps per degree on each axis

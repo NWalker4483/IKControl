@@ -2,6 +2,7 @@
 #include <extras/ar4.h>
 
 String inData;
+String Alarm;
 String function;
 
 const int debugg = 0;
@@ -25,6 +26,8 @@ void setup()
 {
   // run once:
   Serial.begin(9600);
+  controller.attach(robot);
+
   pinMode(Input32, INPUT_PULLUP);
   pinMode(Input33, INPUT_PULLUP);
   pinMode(Input34, INPUT_PULLUP);
@@ -40,9 +43,7 @@ void setup()
 
 void loop()
 {
-
-  // start loop
-  WayPtDel = 0;
+  robot.run();
   while (Serial.available())
   {
     char recieved = Serial.read();
@@ -53,7 +54,6 @@ void loop()
       inData.trim();
       String function = inData.substring(0, 2);
       inData = inData.substring(2);
-      KinematicError = 0;
 
       //-----COMMAND TO CLOSE---------------------------------------------------
       //-----------------------------------------------------------------------
@@ -142,8 +142,6 @@ void loop()
 
       //-----COMMAND HOME POSITION---------------------------------------------------
       //-----------------------------------------------------------------------
-
-      // For debugging
       if (function == "HM")
       {
 
@@ -333,6 +331,7 @@ void loop()
           Serial.println("F");
         }
       }
+      
       //-----COMMAND SET OUTPUT ON---------------------------------------------------
       //-----------------------------------------------------------------------
       if (function == "ON")
@@ -343,6 +342,7 @@ void loop()
         delay(5);
         Serial.println("Done");
       }
+      
       //-----COMMAND SET OUTPUT OFF---------------------------------------------------
       //-----------------------------------------------------------------------
       if (function == "OF")
@@ -353,6 +353,7 @@ void loop()
         delay(5);
         Serial.println("Done");
       }
+      
       //-----COMMAND TO WAIT INPUT ON---------------------------------------------------
       //-----------------------------------------------------------------------
       if (function == "WI")
@@ -366,6 +367,7 @@ void loop()
         delay(5);
         Serial.println("Done");
       }
+      
       //-----COMMAND TO WAIT INPUT OFF---------------------------------------------------
       //-----------------------------------------------------------------------
       if (function == "WO")
@@ -428,6 +430,7 @@ void loop()
         delay(5);
         Serial.println(inData);
       }
+      
       //-----COMMAND TO CALIBRATE---------------------------------------------------
       //-----------------------------------------------------------------------
       if (function == "LL")
@@ -1759,7 +1762,6 @@ void loop()
 
       //----- MOVE J IN JOINTS  ---------------------------------------------------
       //-----------------------------------------------------------------------
-
       if (function == "RJ")
       {
         int J1dir;
