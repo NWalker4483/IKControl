@@ -1082,13 +1082,6 @@ void driveLimit(int J1Step, int J2Step, int J3Step, int J4Step, int J5Step, int 
 void resetEncoders()
 {
 
-    J1collisionTrue = 0;
-    J2collisionTrue = 0;
-    J3collisionTrue = 0;
-    J4collisionTrue = 0;
-    J5collisionTrue = 0;
-    J6collisionTrue = 0;
-
     // set encoders to current position
     J1encPos.write(J1StepM * J1encMult);
     J2encPos.write(J2StepM * J2encMult);

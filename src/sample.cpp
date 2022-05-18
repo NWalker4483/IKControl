@@ -1,27 +1,3 @@
-
-int WayPtDel;
-volatile byte state = LOW;
-
-const int debugg = 0;
-
-// GLOBAL VARS //
-
-//define axis limits in degrees
-float J1axisLimPos = 170;
-float J1axisLimNeg = 170;
-float J2axisLimPos = 90;
-float J2axisLimNeg = 42;
-float J3axisLimPos = 52;
-float J3axisLimNeg = 89;
-float J4axisLimPos = 165;
-float J4axisLimNeg = 165;
-float J5axisLimPos = 105;
-float J5axisLimNeg = 105;
-float J6axisLimPos = 155;
-float J6axisLimNeg = 155;
-float TRaxisLimPos = 3450;
-float TRaxisLimNeg = 0;
-
 //define total axis travel
 float J1axisLim = J1axisLimPos + J1axisLimNeg;
 float J2axisLim = J2axisLimPos + J2axisLimNeg;
