@@ -52,15 +52,13 @@
 #define CALIB_SPEED 1    // deg/s
 #define WIGGLE_FACTOR 15 // stepss
 
-// Setup Steppers
+// Setup Joint Steppers
 AxisStepper stepper1(0, 1);
 AxisStepper stepper2(2, 3);
 AxisStepper stepper3(4, 5);
 AxisStepper stepper4(6, 7);
 AxisStepper stepper5(8, 9);
 AxisStepper stepper6(10, 11);
-
-AxisStepper stepperT(12, 13);
 
 // Setup encoders
 Encoder encoder1(14, 15);
@@ -78,8 +76,8 @@ class AR4 : public MultiAxis<ROBOT_nDOFs>
 {
 
 public:
-    Axis tool;
-    Axis track;
+    AxisStepper tool(12, 13);
+    // AxisStepper track(12, 13);
     bool collision_states[ROBOT_nDOFs];
 
     // Steps per degree on each axis
@@ -132,6 +130,7 @@ public:
 
     void calibrate()
     {
+        setLimitMode(0); // Run at Constant Speed
         // SET CAL DIRECTION
         axis[0].setTargetSpeed(CALIB_SPEED);
         axis[1].setTargetSpeed(CALIB_SPEED);
@@ -139,10 +138,12 @@ public:
         axis[3].setTargetSpeed(-CALIB_SPEED);
         axis[4].setTargetSpeed(CALIB_SPEED);
         axis[5].setTargetSpeed(-CALIB_SPEED);
-        setLimitMode(0);
-        // disableTargetTracking();
-        driveLimits();
+        
+        disableTargetTracking();
+        // while (not at limits)
+        //     run();
 
+        // Apply Calibration Offsets
         // calib_offsets[i]
         // axis[0].setTargetSpeed(CALIB_SPEED);
         // axis[1].setTargetSpeed(CALIB_SPEED);
@@ -150,16 +151,24 @@ public:
         // axis[3].setTargetSpeed(-CALIB_SPEED);
         // axis[4].setTargetSpeed(CALIB_SPEED);
         // axis[5].setTargetSpeed(-CALIB_SPEED);
-        // enableTargetTracking();
+        enableTargetTracking();
     }
 
-    void driveLimits() {}
-    void driveLimits(bool MOVE_J1, bool MOVE_J2, bool MOVE_J3, bool MOVE_J4, bool MOVE_J5, bool MOVE_J6) {}
+    void driveLimits()
+    {
+        driveLimits(true, true, true, true, true, true);
+    }
+
+    void driveLimits(bool MOVE_J1, bool MOVE_J2, bool MOVE_J3, bool MOVE_J4, bool MOVE_J5, bool MOVE_J6)
+    {
+    }
+    
     unsigned int getMillis() { return millis(); };
 
     void computeAxisPositions(double *axis_positions)
     {
-        for (int i = 0; i < 6; i++){
+        for (int i = 0; i < 6; i++)
+        {
             float encoder_steps = (encoders[i]->read() / enc_mult[i]);
             *(axis_positions + i) = (encoder_steps / step_deg[i]);
         }
@@ -179,28 +188,13 @@ public:
     {
         for (int i = 0; i < 6; i++)
             steppers[i]->pollMotor();
+        tool.pollMotor();
+        // track->pollMotor();
     };
 
 private:
     AxisStepper *steppers[ROBOT_nDOFs];
     Encoder *encoders[ROBOT_nDOFs];
-
-    void checkEncoders()
-    {
-        // read encoders
-        J1EncSteps = J1encPos.read() / J1encMult;
-        J2EncSteps = J2encPos.read() / J2encMult;
-        J3EncSteps = J3encPos.read() / J3encMult;
-        J4EncSteps = J4encPos.read() / J4encMult;
-        J5EncSteps = J5encPos.read() / J5encMult;
-        J6EncSteps = J6encPos.read() / J6encMult;
-
-        if (abs((J1EncSteps - J1StepM)) >= 15)
-        {
-            J1collisionTrue = 1;
-        }
-        .........
-    }
 
     void resetEncoders()
     {

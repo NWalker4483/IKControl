@@ -27,6 +27,7 @@ void setup()
   // run once:
   Serial.begin(9600);
   controller.attach(robot);
+  controller.setDHParams();
 
   pinMode(Input32, INPUT_PULLUP);
   pinMode(Input33, INPUT_PULLUP);
@@ -144,14 +145,6 @@ void loop()
       //-----------------------------------------------------------------------
       if (function == "HM")
       {
-
-        int J1dir;
-        int J2dir;
-        int J3dir;
-        int J4dir;
-        int J5dir;
-        int J6dir;
-        int TRdir;
 
         String SpeedType = "p";
         float SpeedVal = 25.0;
@@ -331,7 +324,7 @@ void loop()
           Serial.println("F");
         }
       }
-      
+
       //-----COMMAND SET OUTPUT ON---------------------------------------------------
       //-----------------------------------------------------------------------
       if (function == "ON")
@@ -342,7 +335,7 @@ void loop()
         delay(5);
         Serial.println("Done");
       }
-      
+
       //-----COMMAND SET OUTPUT OFF---------------------------------------------------
       //-----------------------------------------------------------------------
       if (function == "OF")
@@ -353,7 +346,7 @@ void loop()
         delay(5);
         Serial.println("Done");
       }
-      
+
       //-----COMMAND TO WAIT INPUT ON---------------------------------------------------
       //-----------------------------------------------------------------------
       if (function == "WI")
@@ -367,7 +360,7 @@ void loop()
         delay(5);
         Serial.println("Done");
       }
-      
+
       //-----COMMAND TO WAIT INPUT OFF---------------------------------------------------
       //-----------------------------------------------------------------------
       if (function == "WO")
@@ -430,7 +423,7 @@ void loop()
         delay(5);
         Serial.println(inData);
       }
-      
+
       //-----COMMAND TO CALIBRATE---------------------------------------------------
       //-----------------------------------------------------------------------
       if (function == "LL")
@@ -738,13 +731,6 @@ void loop()
       //-----------------------------------------------------------------------
       if (function == "MJ")
       {
-        int J1dir;
-        int J2dir;
-        int J3dir;
-        int J4dir;
-        int J5dir;
-        int J6dir;
-        int TRdir;
 
         int J1axisFault = 0;
         int J2axisFault = 0;
@@ -935,14 +921,6 @@ void loop()
         Serial.println();
 
         updatePos();
-
-        int J1dir;
-        int J2dir;
-        int J3dir;
-        int J4dir;
-        int J5dir;
-        int J6dir;
-        int TRdir;
 
         int J1axisFault = 0;
         int J2axisFault = 0;
@@ -1204,14 +1182,6 @@ void loop()
         Serial.println();
         updatePos();
 
-        int J1dir;
-        int J2dir;
-        int J3dir;
-        int J4dir;
-        int J5dir;
-        int J6dir;
-        int TRdir;
-
         int J1axisFault = 0;
         int J2axisFault = 0;
         int J3axisFault = 0;
@@ -1471,14 +1441,6 @@ void loop()
         Serial.println();
 
         updatePos();
-
-        int J1dir;
-        int J2dir;
-        int J3dir;
-        int J4dir;
-        int J5dir;
-        int J6dir;
-        int TRdir;
 
         int J1axisFault = 0;
         int J2axisFault = 0;
@@ -1764,13 +1726,6 @@ void loop()
       //-----------------------------------------------------------------------
       if (function == "RJ")
       {
-        int J1dir;
-        int J2dir;
-        int J3dir;
-        int J4dir;
-        int J5dir;
-        int J6dir;
-        int TRdir;
 
         int J1axisFault = 0;
         int J2axisFault = 0;
@@ -1957,13 +1912,6 @@ void loop()
       //-----------------------------------------------------------------------
       if (function == "JT")
       {
-        int J1dir;
-        int J2dir;
-        int J3dir;
-        int J4dir;
-        int J5dir;
-        int J6dir;
-        int TRdir;
 
         float Xtool = Robot_Kin_Tool[0];
         float Ytool = Robot_Kin_Tool[1];
@@ -2197,14 +2145,6 @@ void loop()
       //-----------------------------------------------------------------------
       if (function == "MA")
       {
-
-        int J1dir;
-        int J2dir;
-        int J3dir;
-        int J4dir;
-        int J5dir;
-        int J6dir;
-        int TRdir;
 
         int J1axisFault = 0;
         int J2axisFault = 0;
@@ -2617,14 +2557,6 @@ void loop()
       if (function == "MC")
       {
 
-        int J1dir;
-        int J2dir;
-        int J3dir;
-        int J4dir;
-        int J5dir;
-        int J6dir;
-        int TRdir;
-
         int J1axisFault = 0;
         int J2axisFault = 0;
         int J3axisFault = 0;
@@ -3015,13 +2947,6 @@ void loop()
       //-----------------------------------------------------------------------
       if (function == "ML")
       {
-        int J1dir;
-        int J2dir;
-        int J3dir;
-        int J4dir;
-        int J5dir;
-        int J6dir;
-        int TRdir;
 
         int J1axisFault = 0;
         int J2axisFault = 0;
