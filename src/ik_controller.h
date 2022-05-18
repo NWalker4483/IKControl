@@ -92,7 +92,7 @@ typedef float tRobot[66];
     }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// NEW DECLARATION OF VARIABLES ADDED BY OLIVIER ALLARD
+// NEW DECLARATION OF VARIABLES
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #ifndef M_PI
@@ -404,7 +404,7 @@ void xyzuvw_2_pose(const T xyzuvw[6], Matrix4x4 pose)
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// FOWARD KINEMATIC ADDED BY OLIVIER ALLARD
+// FOWARD KINEMATICS
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
@@ -445,9 +445,8 @@ void forward_kinematics_robot(const T joints[ROBOT_nDOFs], Matrix4x4 target)
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// REVERSE KINEMATIC ADDED BY OLIVIER ALLARD
+// REVERSE KINEMATICS
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 template <typename T>
 int inverse_kinematics_robot(const Matrix4x4 target, T joints[ROBOT_nDOFs], const T *joints_estimate)
 {
@@ -2027,137 +2026,6 @@ if (function == "TF")
     Serial.println("Done");
 }
 
-//-----COMMAND TO CALIBRATE---------------------------------------------------
-if (function == "LL")
-{
-    int J1start = inData.indexOf('A');
-    int J2start = inData.indexOf('B');
-    int J3start = inData.indexOf('C');
-    int J4start = inData.indexOf('D');
-    int J5start = inData.indexOf('E');
-    int J6start = inData.indexOf('F');
-    int J1calstart = inData.indexOf('G');
-    int J2calstart = inData.indexOf('H');
-    int J3calstart = inData.indexOf('I');
-    int J4calstart = inData.indexOf('J');
-    int J5calstart = inData.indexOf('K');
-    int J6calstart = inData.indexOf('L');
-    ///
-    int J1req = inData.substring(J1start + 1, J2start).toInt();
-    int J2req = inData.substring(J2start + 1, J3start).toInt();
-    int J3req = inData.substring(J3start + 1, J4start).toInt();
-    int J4req = inData.substring(J4start + 1, J5start).toInt();
-    int J5req = inData.substring(J5start + 1, J6start).toInt();
-    int J6req = inData.substring(J6start + 1, J1calstart).toInt();
-
-    float J1calOff = inData.substring(J1calstart + 1, J2calstart).toFloat();
-    float J2calOff = inData.substring(J2calstart + 1, J3calstart).toFloat();
-    float J3calOff = inData.substring(J3calstart + 1, J4calstart).toFloat();
-    float J4calOff = inData.substring(J4calstart + 1, J5calstart).toFloat();
-    float J5calOff = inData.substring(J5calstart + 1, J6calstart).toFloat();
-    float J6calOff = inData.substring(J6calstart + 1).toFloat();
-
-    ///
-    int J1stepCen = 0;
-    int J2stepCen = 0;
-    int J3stepCen = 0;
-    int J4stepCen = 0;
-    int J5stepCen = 0;
-    int J6stepCen = 0;
-
-    //--IF JOINT IS CALLED FOR CALIBRATION PASS ITS STEP LIMIT OTHERWISE PASS 0---
-    if (J1req == 1)
-    {
-        J1Step = J1StepLim;
-    }
-    if (J2req == 1)
-    {
-        J2Step = J2StepLim;
-    }
-    if (J3req == 1)
-    {
-        J3Step = J3StepLim;
-    }
-    if (J4req == 1)
-    {
-        J4Step = J4StepLim;
-    }
-    if (J5req == 1)
-    {
-        J5Step = J5StepLim;
-    }
-    if (J6req == 1)
-    {
-        J6Step = J6StepLim;
-    }
-
-    // BACKOFF
-
-    // SEE IF ANY SWITCHES NOT MADE
-
-    ///
-    if (J1req == 1)
-    {
-        if (digitalRead(J1calPin) == LOW)
-        {
-            Alarm = "1";
-        }
-    }
-    ///
-    if (Alarm == "0")
-    {
-
-        // set master steps and center step
-        if (J1req == 1)
-        {
-            J1StepM = ((J1axisLim) + J1calBaseOff + J1calOff) * J1StepDeg;
-            J1stepCen = ((J1axisLimPos) + J1calBaseOff + J1calOff) * J1StepDeg;
-        }
-        if (J2req == 1)
-        {
-            J2StepM = (0 + J2calBaseOff + J2calOff) * J2StepDeg;
-            J2stepCen = ((J2axisLimNeg)-J2calBaseOff - J2calOff) * J2StepDeg;
-        }
-        if (J3req == 1)
-        {
-            J3StepM = ((J3axisLim) + J3calBaseOff + J3calOff) * J3StepDeg;
-            J3stepCen = ((J3axisLimPos) + J3calBaseOff + J3calOff) * J3StepDeg;
-        }
-        if (J4req == 1)
-        {
-            J4StepM = (0 + J4calBaseOff + J4calOff) * J4StepDeg;
-            J4stepCen = ((J4axisLimNeg)-J4calBaseOff - J4calOff) * J4StepDeg;
-        }
-        if (J5req == 1)
-        {
-            J5StepM = (0 + J5calBaseOff + J5calOff) * J5StepDeg;
-            J5stepCen = ((J5axisLimNeg)-J5calBaseOff - J5calOff) * J5StepDeg;
-        }
-        if (J6req == 1)
-        {
-            J6StepM = ((J6axisLim) + J6calBaseOff + J6calOff) * J6StepDeg;
-            J6stepCen = ((J6axisLimNeg) + J6calBaseOff + J6calOff) * J6StepDeg;
-        }
-        // move to center
-        int J1dir = 0;
-        int J2dir = 1;
-        int J3dir = 0;
-        int J4dir = 1;
-        int J5dir = 1;
-        int J6dir = 0;
-        int TRdir = 0;
-        int TRstep = 0;
-        float ACCspd = 10;
-        float DCCspd = 10;
-        String SpeedType = "p";
-        float SpeedVal = 80;
-        float ACCramp = 50;
-
-        driveMotorsJ(J1stepCen, J2stepCen, J3stepCen, J4stepCen, J5stepCen, J6stepCen, TRstep, J1dir, J2dir, J3dir, J4dir, J5dir, J6dir, TRdir, SpeedType, SpeedVal, ACCspd, DCCspd, ACCramp);
-        sendRobotPos();
-    }
-}
-
 //----- MOVE J --------------------------------------------------------
 if (function == "MJ")
 {
@@ -3177,14 +3045,7 @@ class IkController
     }
 
     // DENAVIT HARTENBERG PARAMETERS SAME AS ROBODK
-
-    float DHparams[ROBOT_nDOFs][4] = {
-        {0, 0, 169.77, 0},
-        {-90, -90, 0, 64.2},
-        {0, 0, 0, 305},
-        {0, -90, 222.63, 0},
-        {0, 90, 0, 0},
-        {180, -90, 36.25, 0}};
+    float *DHparams[];
 
     int KinematicStatus;
     int AxisFaultStatus;
@@ -3209,19 +3070,9 @@ class IkController
 
     void updatejoints()
     {
-
         for (int i = 0; i > ROBOT_nDOFs; i++)
         {
             JangleIn[i] = JangleOut[i];
-        }
-    }
-
-    void JointEstimate()
-    {
-
-        for (int i = 0; i < ROBOT_nDOFs; i++)
-        {
-            joints_estimate[i] = JangleIn[i];
         }
     }
 
@@ -3261,9 +3112,10 @@ class IkController
         Robot_Kin_DHM_L5[DHM_D] = DHparams[4][2];
         Robot_Kin_DHM_L6[DHM_D] = DHparams[5][2];
 
-        for (size_t i = 0; i < count; i++)
+        for (size_t i = 0; i < ROBOT_nDOFs; i++)
         {
-            /* code */
+        Robot_JointLimits_Lower[0] = J1axisLimNeg;
+        Robot_JointLimits_Upper[0] = J1axisLimPos;
         }
 
         Robot_JointLimits_Lower[0] = J1axisLimNeg;

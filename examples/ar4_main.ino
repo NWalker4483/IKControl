@@ -208,191 +208,7 @@ void loop()
         Serial.println("Done");
       }
 
-      //----- MOVE J ---------------------------------------------------
-      //-----------------------------------------------------------------------
-      if (function == "MJ")
-      {
-
-        int J1axisFault = 0;
-        int J2axisFault = 0;
-        int J3axisFault = 0;
-        int J4axisFault = 0;
-        int J5axisFault = 0;
-        int J6axisFault = 0;
-        int TRaxisFault = 0;
-        int TotalAxisFault = 0;
-
-        Alarm = "0";
-
-        int xStart = inData.indexOf("X");
-        int yStart = inData.indexOf("Y");
-        int zStart = inData.indexOf("Z");
-        int rzStart = inData.indexOf("Rz");
-        int ryStart = inData.indexOf("Ry");
-        int rxStart = inData.indexOf("Rx");
-        int tStart = inData.indexOf("Tr");
-        int SPstart = inData.indexOf("S");
-        int AcStart = inData.indexOf("Ac");
-        int DcStart = inData.indexOf("Dc");
-        int RmStart = inData.indexOf("Rm");
-        int WristConStart = inData.indexOf("W");
-
-        xyzuvw_In[0] = inData.substring(xStart + 1, yStart).toFloat();
-        xyzuvw_In[1] = inData.substring(yStart + 1, zStart).toFloat();
-        xyzuvw_In[2] = inData.substring(zStart + 1, rzStart).toFloat();
-        xyzuvw_In[3] = inData.substring(rzStart + 2, ryStart).toFloat();
-        xyzuvw_In[4] = inData.substring(ryStart + 2, rxStart).toFloat();
-        xyzuvw_In[5] = inData.substring(rxStart + 2, tStart).toFloat();
-        xyzuvw_In[6] = inData.substring(tStart + 2, SPstart).toFloat();
-
-        String SpeedType = inData.substring(SPstart + 1, SPstart + 2);
-        float SpeedVal = inData.substring(SPstart + 2, AcStart).toFloat();
-        float ACCspd = inData.substring(AcStart + 2, DcStart).toFloat();
-        float DCCspd = inData.substring(DcStart + 2, RmStart).toFloat();
-        float ACCramp = inData.substring(RmStart + 2, WristConStart).toFloat();
-
-        WristCon = inData.substring(WristConStart + 1);
-        WristCon.trim();
-
-        SolveInverseKinematic();
-
-        // calc destination motor steps
-        int J1futStepM = (JangleOut[0] + J1axisLimNeg) * J1StepDeg;
-        int J2futStepM = (JangleOut[1] + J2axisLimNeg) * J2StepDeg;
-        int J3futStepM = (JangleOut[2] + J3axisLimNeg) * J3StepDeg;
-        int J4futStepM = (JangleOut[3] + J4axisLimNeg) * J4StepDeg;
-        int J5futStepM = (JangleOut[4] + J5axisLimNeg) * J5StepDeg;
-        int J6futStepM = (JangleOut[5] + J6axisLimNeg) * J6StepDeg;
-        int TRfutStepM = (xyzuvw_In[6] + TRaxisLimNeg) * TRStepDeg;
-
-        // calc delta from current to destination
-        int J1stepDif = J1StepM - J1futStepM;
-        int J2stepDif = J2StepM - J2futStepM;
-        int J3stepDif = J3StepM - J3futStepM;
-        int J4stepDif = J4StepM - J4futStepM;
-        int J5stepDif = J5StepM - J5futStepM;
-        int J6stepDif = J6StepM - J6futStepM;
-        int TRstepDif = TRStepM - TRfutStepM;
-
-        // determine motor directions
-        if (J1stepDif <= 0)
-        {
-          J1dir = 1;
-        }
-        else
-        {
-          J1dir = 0;
-        }
-
-        if (J2stepDif <= 0)
-        {
-          J2dir = 1;
-        }
-        else
-        {
-          J2dir = 0;
-        }
-
-        if (J3stepDif <= 0)
-        {
-          J3dir = 1;
-        }
-        else
-        {
-          J3dir = 0;
-        }
-
-        if (J4stepDif <= 0)
-        {
-          J4dir = 1;
-        }
-        else
-        {
-          J4dir = 0;
-        }
-
-        if (J5stepDif <= 0)
-        {
-          J5dir = 1;
-        }
-        else
-        {
-          J5dir = 0;
-        }
-
-        if (J6stepDif <= 0)
-        {
-          J6dir = 1;
-        }
-        else
-        {
-          J6dir = 0;
-        }
-
-        if (TRstepDif <= 0)
-        {
-          TRdir = 1;
-        }
-        else
-        {
-          TRdir = 0;
-        }
-
-        // determine if requested position is within axis limits
-        if ((J1dir == 1 and (J1StepM + J1stepDif > J1StepLim)) or (J1dir == 0 and (J1StepM - J1stepDif < 0)))
-        {
-          J1axisFault = 1;
-        }
-        if ((J2dir == 1 and (J2StepM + J2stepDif > J2StepLim)) or (J2dir == 0 and (J2StepM - J2stepDif < 0)))
-        {
-          J2axisFault = 1;
-        }
-        if ((J3dir == 1 and (J3StepM + J3stepDif > J3StepLim)) or (J3dir == 0 and (J3StepM - J3stepDif < 0)))
-        {
-          J3axisFault = 1;
-        }
-        if ((J4dir == 1 and (J4StepM + J4stepDif > J4StepLim)) or (J4dir == 0 and (J4StepM - J4stepDif < 0)))
-        {
-          J4axisFault = 1;
-        }
-        if ((J5dir == 1 and (J5StepM + J5stepDif > J5StepLim)) or (J5dir == 0 and (J5StepM - J5stepDif < 0)))
-        {
-          J5axisFault = 1;
-        }
-        if ((J6dir == 1 and (J6StepM + J6stepDif > J6StepLim)) or (J6dir == 0 and (J6StepM - J6stepDif < 0)))
-        {
-          J6axisFault = 1;
-        }
-        if ((TRdir == 1 and (TRStepM + TRstepDif > TRStepLim)) or (TRdir == 0 and (TRStepM - TRstepDif < 0)))
-        {
-          TRaxisFault = 1;
-        }
-        TotalAxisFault = J1axisFault + J2axisFault + J3axisFault + J4axisFault + J5axisFault + J6axisFault + TRaxisFault;
-
-        // send move command if no axis limit error
-        if (TotalAxisFault == 0 && KinematicError == 0)
-        {
-          resetEncoders();
-          driveMotorsJ(abs(J1stepDif), abs(J2stepDif), abs(J3stepDif), abs(J4stepDif), abs(J5stepDif), abs(J6stepDif), abs(TRstepDif), J1dir, J2dir, J3dir, J4dir, J5dir, J6dir, TRdir, SpeedType, SpeedVal, ACCspd, DCCspd, ACCramp);
-          checkEncoders();
-          sendRobotPos();
-        }
-        else if (KinematicError == 1)
-        {
-          Alarm = "ER";
-          delay(5);
-          Serial.println(Alarm);
-        }
-        else
-        {
-          Alarm = "EL" + String(J1axisFault) + String(J2axisFault) + String(J3axisFault) + String(J4axisFault) + String(J5axisFault) + String(J6axisFault) + String(TRaxisFault);
-          delay(5);
-          Serial.println(Alarm);
-        }
-
-        inData = ""; // Clear recieved buffer
-        ////////MOVE COMPLETE///////////
-      }
+     
 
       //----- LIVE CARTESIAN JOG  ---------------------------------------------------
       //-----------------------------------------------------------------------
@@ -1257,6 +1073,122 @@ void loop()
       //----- Jog T ----------------------------------------------------------
       if (function == "JT")
       {
+        inData = ""; // Clear recieved buffer
+      }
+
+      //----- MOVE J ---------------------------------------------------
+      //-----------------------------------------------------------------------
+      if (function == "MJ")
+      {     
+        int TotalAxisFault = 0;
+
+        Alarm = "0";
+
+        int xStart = inData.indexOf("X");
+        int yStart = inData.indexOf("Y");
+        int zStart = inData.indexOf("Z");
+        int rzStart = inData.indexOf("Rz");
+        int ryStart = inData.indexOf("Ry");
+        int rxStart = inData.indexOf("Rx");
+        int tStart = inData.indexOf("Tr");
+        int SPstart = inData.indexOf("S");
+        int AcStart = inData.indexOf("Ac");
+        int DcStart = inData.indexOf("Dc");
+        int RmStart = inData.indexOf("Rm");
+        int WristConStart = inData.indexOf("W");
+
+        xyzuvw_In[0] = inData.substring(xStart + 1, yStart).toFloat();
+        xyzuvw_In[1] = inData.substring(yStart + 1, zStart).toFloat();
+        xyzuvw_In[2] = inData.substring(zStart + 1, rzStart).toFloat();
+        xyzuvw_In[3] = inData.substring(rzStart + 2, ryStart).toFloat();
+        xyzuvw_In[4] = inData.substring(ryStart + 2, rxStart).toFloat();
+        xyzuvw_In[5] = inData.substring(rxStart + 2, tStart).toFloat();
+        xyzuvw_In[6] = inData.substring(tStart + 2, SPstart).toFloat();
+
+        String SpeedType = inData.substring(SPstart + 1, SPstart + 2);
+        float SpeedVal = inData.substring(SPstart + 2, AcStart).toFloat();
+        float ACCspd = inData.substring(AcStart + 2, DcStart).toFloat();
+        float DCCspd = inData.substring(DcStart + 2, RmStart).toFloat();
+        float ACCramp = inData.substring(RmStart + 2, WristConStart).toFloat();
+
+        WristCon = inData.substring(WristConStart + 1);
+        WristCon.trim();
+
+        SolveInverseKinematic();
+
+        // calc destination motor steps
+        int J1futStepM = (JangleOut[0] + J1axisLimNeg) * J1StepDeg;
+        int J2futStepM = (JangleOut[1] + J2axisLimNeg) * J2StepDeg;
+        int J3futStepM = (JangleOut[2] + J3axisLimNeg) * J3StepDeg;
+        int J4futStepM = (JangleOut[3] + J4axisLimNeg) * J4StepDeg;
+        int J5futStepM = (JangleOut[4] + J5axisLimNeg) * J5StepDeg;
+        int J6futStepM = (JangleOut[5] + J6axisLimNeg) * J6StepDeg;
+        int TRfutStepM = (xyzuvw_In[6] + TRaxisLimNeg) * TRStepDeg;
+
+        // calc delta from current to destination
+        int J1stepDif = J1StepM - J1futStepM;
+        int J2stepDif = J2StepM - J2futStepM;
+        int J3stepDif = J3StepM - J3futStepM;
+        int J4stepDif = J4StepM - J4futStepM;
+        int J5stepDif = J5StepM - J5futStepM;
+        int J6stepDif = J6StepM - J6futStepM;
+        int TRstepDif = TRStepM - TRfutStepM;
+
+        // determine motor directions
+     
+
+        // determine if requested position is within axis limits
+        if ((J1dir == 1 and (J1StepM + J1stepDif > J1StepLim)) or (J1dir == 0 and (J1StepM - J1stepDif < 0)))
+        {
+          J1axisFault = 1;
+        }
+        if ((J2dir == 1 and (J2StepM + J2stepDif > J2StepLim)) or (J2dir == 0 and (J2StepM - J2stepDif < 0)))
+        {
+          J2axisFault = 1;
+        }
+        if ((J3dir == 1 and (J3StepM + J3stepDif > J3StepLim)) or (J3dir == 0 and (J3StepM - J3stepDif < 0)))
+        {
+          J3axisFault = 1;
+        }
+        if ((J4dir == 1 and (J4StepM + J4stepDif > J4StepLim)) or (J4dir == 0 and (J4StepM - J4stepDif < 0)))
+        {
+          J4axisFault = 1;
+        }
+        if ((J5dir == 1 and (J5StepM + J5stepDif > J5StepLim)) or (J5dir == 0 and (J5StepM - J5stepDif < 0)))
+        {
+          J5axisFault = 1;
+        }
+        if ((J6dir == 1 and (J6StepM + J6stepDif > J6StepLim)) or (J6dir == 0 and (J6StepM - J6stepDif < 0)))
+        {
+          J6axisFault = 1;
+        }
+        if ((TRdir == 1 and (TRStepM + TRstepDif > TRStepLim)) or (TRdir == 0 and (TRStepM - TRstepDif < 0)))
+        {
+          TRaxisFault = 1;
+        }
+        TotalAxisFault = J1axisFault + J2axisFault + J3axisFault + J4axisFault + J5axisFault + J6axisFault + TRaxisFault;
+
+        // send move command if no axis limit error
+        if (TotalAxisFault == 0 && KinematicError == 0)
+        {
+          resetEncoders();
+          driveMotorsJ(abs(J1stepDif), abs(J2stepDif), abs(J3stepDif), abs(J4stepDif), abs(J5stepDif), abs(J6stepDif), abs(TRstepDif), J1dir, J2dir, J3dir, J4dir, J5dir, J6dir, TRdir, SpeedType, SpeedVal, ACCspd, DCCspd, ACCramp);
+          checkEncoders();
+          sendRobotPos();
+        }
+        else if (KinematicError == 1)
+        {
+          Alarm = "ER";
+          delay(5);
+          Serial.println(Alarm);
+        }
+        else
+        {
+          Alarm = "EL" + String(J1axisFault) + String(J2axisFault) + String(J3axisFault) + String(J4axisFault) + String(J5axisFault) + String(J6axisFault) + String(TRaxisFault);
+          delay(5);
+          Serial.println(Alarm);
+        }
+
         inData = ""; // Clear recieved buffer
       }
 

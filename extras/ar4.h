@@ -232,7 +232,6 @@ public:
         for (int i = 0; i < 6; i++)
             steppers[i]->pollMotor();
         tool.pollMotor();
-        // track.pollMotor();
     };
     
     // void resetEncoders()
