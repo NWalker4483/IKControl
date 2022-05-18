@@ -761,8 +761,7 @@ void inverse_kinematics_raw(const T pose[16], const tRobot DK, const T joints_ap
 // CALCULATE POSITIONS
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// This function set the variable inside Robot_Data to the DHparams
-void robot_set_AR3()
+void robot_data_grab()
 {
     robot_data_reset();
 
@@ -845,30 +844,8 @@ bool robot_joints_valid(const T joints[ROBOT_nDOFs])
     return true;
 }
 
-
-void sendRobotPos()
-{
-    updatePos();
-    String sendPos = "A" + String(JangleIn[0], 3) + "B" + String(JangleIn[1], 3) + "C" + String(JangleIn[2], 3) + "D" + String(JangleIn[3], 3) + "E" + String(JangleIn[4], 3) + "F" + String(JangleIn[5], 3) + "G" + String(xyzuvw_Out[0], 3) + "H" + String(xyzuvw_Out[1], 3) + "I" + String(xyzuvw_Out[2], 3) + "J" + String(xyzuvw_Out[3], 3) + "K" + String(xyzuvw_Out[4], 3) + "L" + String(xyzuvw_Out[5], 3) + "M" + speedViolation + "N" + debug + "O" + flag + "P" + TRStepM;
-    delay(5);
-    Serial.println(sendPos);
-    speedViolation = "0";
-    flag = "";
-}
-
-void updatePos()
-{
-    JangleIn[0] = (J1StepM - J1zeroStep) / J1StepDeg;
-    JangleIn[1] = (J2StepM - J2zeroStep) / J2StepDeg;
-    JangleIn[2] = (J3StepM - J3zeroStep) / J3StepDeg;
-    JangleIn[3] = (J4StepM - J4zeroStep) / J4StepDeg;
-    JangleIn[4] = (J5StepM - J5zeroStep) / J5StepDeg;
-    JangleIn[5] = (J6StepM - J6zeroStep) / J6StepDeg;
-
-    SolveFowardKinematic();
-}
-
 void correctRobotPos()
+// Calculate robot tip position 
 {
     J1StepM = J1encPos.read() / J1encMult;
     J2StepM = J2encPos.read() / J2encMult;
@@ -885,255 +862,6 @@ void correctRobotPos()
     JangleIn[5] = (J6StepM - J6zeroStep) / J6StepDeg;
 
     SolveFowardKinematic();
-
-    // String sendPos = "A" + String(J1StepM) + "B" + String(J2StepM) + "C" + String(J3StepM) + "D" + String(J4StepM) + "E" + String(J5StepM) + "F" + String(J6StepM) + "G" + String(xyzuvw_Out[0], 2) + "H" + String(xyzuvw_Out[1], 2) + "I" + String(xyzuvw_Out[2], 2) + "J" + String(xyzuvw_Out[3], 2) + "K" + String(xyzuvw_Out[4], 2) + "L" + String(xyzuvw_Out[5], 2) + "M" + speedViolation + "N" + debug + "O"+ flag + "P" + TRStepM;
-    String sendPos = "A" + String(JangleIn[0], 3) + "B" + String(JangleIn[1], 3) + "C" + String(JangleIn[2], 3) + "D" + String(JangleIn[3], 3) + "E" + String(JangleIn[4], 3) + "F" + String(JangleIn[5], 3) + "G" + String(xyzuvw_Out[0], 3) + "H" + String(xyzuvw_Out[1], 3) + "I" + String(xyzuvw_Out[2], 3) + "J" + String(xyzuvw_Out[3], 3) + "K" + String(xyzuvw_Out[4], 3) + "L" + String(xyzuvw_Out[5], 3) + "M" + speedViolation + "N" + debug + "O" + flag + "P" + TRStepM;
-    delay(5);
-    Serial.println(sendPos);
-    speedViolation = "0";
-    flag = "";
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// DRIVE LIMIT
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void driveLimit(int J1Step, int J2Step, int J3Step, int J4Step, int J5Step, int J6Step, float SpeedVal)
-{
-
-    // RESET COUNTERS
-    int J1done = 0;
-    int J2done = 0;
-    int J3done = 0;
-    int J4done = 0;
-    int J5done = 0;
-    int J6done = 0;
-
-    int J1complete = 0;
-    int J2complete = 0;
-    int J3complete = 0;
-    int J4complete = 0;
-    int J5complete = 0;
-    int J6complete = 0;
-
-    int calcStepGap = ((maxSpeedDelay - ((SpeedVal / 100) * maxSpeedDelay)) + minSpeedDelay + 300);
-
-    // SET CAL DIRECTION
-    digitalWrite(J1dirPin, HIGH);
-    digitalWrite(J2dirPin, HIGH);
-    digitalWrite(J3dirPin, LOW);
-    digitalWrite(J4dirPin, LOW);
-    digitalWrite(J5dirPin, HIGH);
-    digitalWrite(J6dirPin, LOW);
-
-    // DRIVE MOTORS FOR CALIBRATION
-
-    int curRead;
-    int J1CurState;
-    int J2CurState;
-    int J3CurState;
-    int J4CurState;
-    int J5CurState;
-    int J6CurState;
-    int DriveLimInProc = 1;
-
-    if (J1Step <= 0)
-    {
-        J1complete = 1;
-    }
-    if (J2Step <= 0)
-    {
-        J2complete = 1;
-    }
-    if (J3Step <= 0)
-    {
-        J3complete = 1;
-    }
-    if (J4Step <= 0)
-    {
-        J4complete = 1;
-    }
-    if (J5Step <= 0)
-    {
-        J5complete = 1;
-    }
-    if (J6Step <= 0)
-    {
-        J6complete = 1;
-    }
-
-    while (DriveLimInProc == 1)
-    {
-
-        // EVAL J1
-        if (digitalRead(J1calPin) == LOW)
-        {
-            J1CurState = LOW;
-        }
-        else
-        {
-            delayMicroseconds(10);
-            if (digitalRead(J1calPin) == LOW)
-            {
-                J1CurState = LOW;
-            }
-            else
-            {
-                delayMicroseconds(10);
-                if (digitalRead(J1calPin) == LOW)
-                {
-                    J1CurState = LOW;
-                }
-                else
-                {
-                    delayMicroseconds(10);
-                    if (digitalRead(J1calPin) == LOW)
-                    {
-                        J1CurState = LOW;
-                    }
-                    else
-                    {
-                        J1CurState = digitalRead(J1calPin);
-                    }
-                }
-            }
-        }
-
-        if (J1done < J1Step && J1CurState == LOW)
-        {
-            digitalWrite(J1stepPin, LOW);
-            delayMicroseconds(50);
-            digitalWrite(J1stepPin, HIGH);
-            J1done = ++J1done;
-        }
-        else
-        {
-            J1complete = 1;
-        }
-        if (J2done < J2Step && J2CurState == LOW)
-        {
-            digitalWrite(J2stepPin, LOW);
-            delayMicroseconds(50);
-            digitalWrite(J2stepPin, HIGH);
-            J2done = ++J2done;
-        }
-        else
-        {
-            J2complete = 1;
-        }
-        if (J3done < J3Step && J3CurState == LOW)
-        {
-            digitalWrite(J3stepPin, LOW);
-            delayMicroseconds(50);
-            digitalWrite(J3stepPin, HIGH);
-            J3done = ++J3done;
-        }
-        else
-        {
-            J3complete = 1;
-        }
-        if (J4done < J4Step && J4CurState == LOW)
-        {
-            digitalWrite(J4stepPin, LOW);
-            delayMicroseconds(50);
-            digitalWrite(J4stepPin, HIGH);
-            J4done = ++J4done;
-        }
-        else
-        {
-            J4complete = 1;
-        }
-        if (J5done < J5Step && J5CurState == LOW)
-        {
-            digitalWrite(J5stepPin, LOW);
-            delayMicroseconds(50);
-            digitalWrite(J5stepPin, HIGH);
-            J5done = ++J5done;
-        }
-        else
-        {
-            J5complete = 1;
-        }
-        if (J6done < J6Step && J6CurState == LOW)
-        {
-            digitalWrite(J6stepPin, LOW);
-            delayMicroseconds(50);
-            digitalWrite(J6stepPin, HIGH);
-            J6done = ++J6done;
-        }
-        else
-        {
-            J6complete = 1;
-        }
-        // jump out if complete
-        if (J1complete + J2complete + J3complete + J4complete + J5complete + J6complete == 6)
-        {
-            DriveLimInProc = 0;
-        }
-        ///////////////DELAY BEFORE RESTARTING LOOP
-        delayMicroseconds(calcStepGap);
-    }
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// CHECK ENCODERS
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void resetEncoders()
-{
-
-    // set encoders to current position
-    J1encPos.write(J1StepM * J1encMult);
-    J2encPos.write(J2StepM * J2encMult);
-    J3encPos.write(J3StepM * J3encMult);
-    J4encPos.write(J4StepM * J4encMult);
-    J5encPos.write(J5StepM * J5encMult);
-    J6encPos.write(J6StepM * J6encMult);
-    // delayMicroseconds(5);
-}
-
-void checkEncoders()
-{
-    // read encoders
-    J1EncSteps = J1encPos.read() / J1encMult;
-    J2EncSteps = J2encPos.read() / J2encMult;
-    J3EncSteps = J3encPos.read() / J3encMult;
-    J4EncSteps = J4encPos.read() / J4encMult;
-    J5EncSteps = J5encPos.read() / J5encMult;
-    J6EncSteps = J6encPos.read() / J6encMult;
-
-    if (abs((J1EncSteps - J1StepM)) >= 15)
-    {
-        J1collisionTrue = 1;
-    }
-    if (abs((J2EncSteps - J2StepM)) >= 15)
-    {
-        J2collisionTrue = 1;
-    }
-    if (abs((J3EncSteps - J3StepM)) >= 15)
-    {
-        J3collisionTrue = 1;
-    }
-    if (abs((J4EncSteps - J4StepM)) >= 15)
-    {
-        J4collisionTrue = 1;
-    }
-    if (abs((J5EncSteps - J5StepM)) >= 15)
-    {
-        J5collisionTrue = 1;
-    }
-    if (abs((J6EncSteps - J6StepM)) >= 15)
-    {
-        J6collisionTrue = 1;
-    }
-
-    TotalCollision = J1collisionTrue + J2collisionTrue + J3collisionTrue + J4collisionTrue + J5collisionTrue + J6collisionTrue;
-    if (TotalCollision > 0)
-    {
-        flag = "EC" + String(J1collisionTrue) + String(J2collisionTrue) + String(J3collisionTrue) + String(J4collisionTrue) + String(J5collisionTrue) + String(J6collisionTrue);
-    }
-
-    // debug = String(J5StepM) + "-" + String(J5EncSteps);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2729,15 +2457,7 @@ void driveMotorsL(int J1step, int J2step, int J3step, int J4step, int J5step, in
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-//-----COMMAND CORRECT POSITION---------------------------------------------------
-//-----------------------------------------------------------------------
-if (function == "CP")
-{
-    correctRobotPos();
-}
-
 //-----COMMAND SET TOOL FRAME---------------------------------------------------
-//-----------------------------------------------------------------------
 if (function == "TF")
 {
     int TFxStart = inData.indexOf('A');
@@ -2756,83 +2476,8 @@ if (function == "TF")
     Serial.println("Done");
 }
 
-//-----COMMAND CALIBRATE TRACK---------------------------------------------------
-//-----------------------------------------------------------------------
-if (function == "CT")
-{
-    int axis7lengthStart = inData.indexOf('A');
-    int axis7rotStart = inData.indexOf('B');
-    int axis7stepsStart = inData.indexOf('C');
-    axis7length = inData.substring(axis7lengthStart + 1, axis7rotStart).toFloat();
-    axis7rot = inData.substring(axis7rotStart + 1, axis7stepsStart).toFloat();
-    axis7steps = inData.substring(axis7stepsStart + 1).toFloat();
-    TRaxisLimNeg = 0;
-    TRaxisLimPos = axis7length;
-    TRaxisLim = TRaxisLimPos + TRaxisLimNeg;
-    TRStepDeg = axis7steps / axis7rot;
-    TRStepLim = TRaxisLim * TRStepDeg;
-    delay(5);
-    Serial.print("Done");
-}
 
-//-----COMMAND ZERO TRACK---------------------------------------------------
-//-----------------------------------------------------------------------
-if (function == "ZT")
-{
-    TRStepM = 0;
-    sendRobotPos();
-}
-
-//-----COMMAND SEND POSITION---------------------------------------------------
-//-----------------------------------------------------------------------
-if (function == "SP")
-{
-    int J1angStart = inData.indexOf('A');
-    int J2angStart = inData.indexOf('B');
-    int J3angStart = inData.indexOf('C');
-    int J4angStart = inData.indexOf('D');
-    int J5angStart = inData.indexOf('E');
-    int J6angStart = inData.indexOf('F');
-    int TRstepStart = inData.indexOf('G');
-    J1StepM = ((inData.substring(J1angStart + 1, J2angStart).toFloat()) + J1axisLimNeg) * J1StepDeg;
-    J2StepM = ((inData.substring(J2angStart + 1, J3angStart).toFloat()) + J2axisLimNeg) * J2StepDeg;
-    J3StepM = ((inData.substring(J3angStart + 1, J4angStart).toFloat()) + J3axisLimNeg) * J3StepDeg;
-    J4StepM = ((inData.substring(J4angStart + 1, J5angStart).toFloat()) + J4axisLimNeg) * J4StepDeg;
-    J5StepM = ((inData.substring(J5angStart + 1, J6angStart).toFloat()) + J5axisLimNeg) * J5StepDeg;
-    J6StepM = ((inData.substring(J6angStart + 1, TRstepStart).toFloat()) + J6axisLimNeg) * J6StepDeg;
-    TRStepM = inData.substring(TRstepStart + 1).toFloat();
-    delay(5);
-    Serial.println("Done");
-}
-
-//-----COMMAND ECHO TEST MESSAGE---------------------------------------------------
-//-----------------------------------------------------------------------
-if (function == "TM")
-{
-    int J1start = inData.indexOf('A');
-    int J2start = inData.indexOf('B');
-    int J3start = inData.indexOf('C');
-    int J4start = inData.indexOf('D');
-    int J5start = inData.indexOf('E');
-    int J6start = inData.indexOf('F');
-    int WristConStart = inData.indexOf('W');
-    JangleIn[0] = inData.substring(J1start + 1, J2start).toFloat();
-    JangleIn[1] = inData.substring(J2start + 1, J3start).toFloat();
-    JangleIn[2] = inData.substring(J3start + 1, J4start).toFloat();
-    JangleIn[3] = inData.substring(J4start + 1, J5start).toFloat();
-    JangleIn[4] = inData.substring(J5start + 1, J6start).toFloat();
-    JangleIn[5] = inData.substring(J6start + 1, WristConStart).toFloat();
-    WristCon = inData.substring(WristConStart + 1);
-    WristCon.trim();
-
-    SolveInverseKinematic();
-
-    String echo = "";
-    delay(5);
-    Serial.println(inData);
-}
 //-----COMMAND TO CALIBRATE---------------------------------------------------
-//-----------------------------------------------------------------------
 if (function == "LL")
 {
     int J1start = inData.indexOf('A');
@@ -2860,15 +2505,7 @@ if (function == "LL")
     float J4calOff = inData.substring(J4calstart + 1, J5calstart).toFloat();
     float J5calOff = inData.substring(J5calstart + 1, J6calstart).toFloat();
     float J6calOff = inData.substring(J6calstart + 1).toFloat();
-    ///
-    float SpeedIn;
-    ///
-    int J1Step = 0;
-    int J2Step = 0;
-    int J3Step = 0;
-    int J4Step = 0;
-    int J5Step = 0;
-    int J6Step = 0;
+
     ///
     int J1stepCen = 0;
     int J2stepCen = 0;
@@ -2876,7 +2513,6 @@ if (function == "LL")
     int J4stepCen = 0;
     int J5stepCen = 0;
     int J6stepCen = 0;
-    Alarm = "0";
 
     //--IF JOINT IS CALLED FOR CALIBRATION PASS ITS STEP LIMIT OTHERWISE PASS 0---
     if (J1req == 1)
@@ -2905,171 +2541,18 @@ if (function == "LL")
     }
 
     //--CALL FUNCT TO DRIVE TO LIMITS--
-    SpeedIn = 80;
-    driveLimit(J1Step, J2Step, J3Step, J4Step, J5Step, J6Step, SpeedIn);
     delay(500);
 
     // BACKOFF
-    digitalWrite(J1dirPin, LOW);
-    digitalWrite(J2dirPin, LOW);
-    digitalWrite(J3dirPin, HIGH);
-    digitalWrite(J4dirPin, HIGH);
-    digitalWrite(J5dirPin, LOW);
-    digitalWrite(J6dirPin, HIGH);
-
-    int BacOff = 0;
-    while (BacOff <= 250)
-    {
-        if (J1req == 1)
-        {
-            digitalWrite(J1stepPin, LOW);
-            delayMicroseconds(5);
-            digitalWrite(J1stepPin, HIGH);
-            delayMicroseconds(5);
-        }
-        if (J2req == 1)
-        {
-            digitalWrite(J2stepPin, LOW);
-            delayMicroseconds(5);
-            digitalWrite(J2stepPin, HIGH);
-            delayMicroseconds(5);
-        }
-        if (J3req == 1)
-        {
-            digitalWrite(J3stepPin, LOW);
-            delayMicroseconds(5);
-            digitalWrite(J3stepPin, HIGH);
-            delayMicroseconds(5);
-        }
-        if (J4req == 1)
-        {
-            digitalWrite(J4stepPin, LOW);
-            delayMicroseconds(5);
-            digitalWrite(J4stepPin, HIGH);
-            delayMicroseconds(5);
-        }
-        if (J5req == 1)
-        {
-            digitalWrite(J5stepPin, LOW);
-            delayMicroseconds(5);
-            digitalWrite(J5stepPin, HIGH);
-            delayMicroseconds(5);
-        }
-        if (J6req == 1)
-        {
-            digitalWrite(J6stepPin, LOW);
-            delayMicroseconds(5);
-            digitalWrite(J6stepPin, HIGH);
-            delayMicroseconds(5);
-        }
-        BacOff = ++BacOff;
-        delayMicroseconds(4000);
-    }
-
-    //--CALL FUNCT TO DRIVE BACK TO LIMITS SLOWLY--
-    SpeedIn = .02;
-    driveLimit(J1Step, J2Step, J3Step, J4Step, J5Step, J6Step, SpeedIn);
-
-    // OVERDRIVE - MAKE SURE LIMIT SWITCH STAYS MADE
-    digitalWrite(J1dirPin, HIGH);
-    digitalWrite(J2dirPin, HIGH);
-    digitalWrite(J3dirPin, LOW);
-    digitalWrite(J4dirPin, LOW);
-    digitalWrite(J5dirPin, HIGH);
-    digitalWrite(J6dirPin, LOW);
-
-    int OvrDrv = 0;
-    while (OvrDrv <= 30)
-    {
-        if (J1req == 1)
-        {
-            digitalWrite(J1stepPin, LOW);
-            delayMicroseconds(5);
-            digitalWrite(J1stepPin, HIGH);
-            delayMicroseconds(5);
-        }
-        if (J2req == 1)
-        {
-            digitalWrite(J2stepPin, LOW);
-            delayMicroseconds(5);
-            digitalWrite(J2stepPin, HIGH);
-            delayMicroseconds(5);
-        }
-        if (J3req == 1)
-        {
-            digitalWrite(J3stepPin, LOW);
-            delayMicroseconds(5);
-            digitalWrite(J3stepPin, HIGH);
-            delayMicroseconds(5);
-        }
-        if (J4req == 1)
-        {
-            digitalWrite(J4stepPin, LOW);
-            delayMicroseconds(5);
-            digitalWrite(J4stepPin, HIGH);
-            delayMicroseconds(5);
-        }
-        if (J5req == 1)
-        {
-            digitalWrite(J5stepPin, LOW);
-            delayMicroseconds(5);
-            digitalWrite(J5stepPin, HIGH);
-            delayMicroseconds(5);
-        }
-        if (J6req == 1)
-        {
-            digitalWrite(J6stepPin, LOW);
-            delayMicroseconds(5);
-            digitalWrite(J6stepPin, HIGH);
-            delayMicroseconds(5);
-        }
-        OvrDrv = ++OvrDrv;
-        delayMicroseconds(3000);
-    }
 
     // SEE IF ANY SWITCHES NOT MADE
-    delay(500);
+
     ///
     if (J1req == 1)
     {
         if (digitalRead(J1calPin) == LOW)
         {
             Alarm = "1";
-        }
-    }
-    if (J2req == 1)
-    {
-        if (digitalRead(J2calPin) == LOW)
-        {
-            Alarm = "2";
-        }
-    }
-    if (J3req == 1)
-    {
-        if (digitalRead(J3calPin) == LOW)
-        {
-            Alarm = "3";
-        }
-    }
-    if (J4req == 1)
-    {
-        if (digitalRead(J4calPin) == LOW)
-        {
-            Alarm = "4";
-        }
-    }
-    if (J5req == 1)
-    {
-        if (digitalRead(J5calPin) == LOW)
-        {
-            Alarm = "5";
-        }
-    }
-    if (J6req == 1)
-    {
-        if (digitalRead(J6calPin) == LOW)
-        {
-            Alarm = "6";
         }
     }
     ///
@@ -3125,20 +2608,12 @@ if (function == "LL")
         driveMotorsJ(J1stepCen, J2stepCen, J3stepCen, J4stepCen, J5stepCen, J6stepCen, TRstep, J1dir, J2dir, J3dir, J4dir, J5dir, J6dir, TRdir, SpeedType, SpeedVal, ACCspd, DCCspd, ACCramp);
         sendRobotPos();
     }
-    else
-    {
-        delay(5);
-        Serial.println(Alarm);
-    }
-
-    inData = ""; // Clear recieved buffer
 }
 
 //----- MOVE J ---------------------------------------------------
 //-----------------------------------------------------------------------
 if (function == "MJ")
 {
-    
 
     int J1axisFault = 0;
     int J2axisFault = 0;
@@ -3201,99 +2676,9 @@ if (function == "MJ")
     int J6stepDif = J6StepM - J6futStepM;
     int TRstepDif = TRStepM - TRfutStepM;
 
-    // determine motor directions
-    if (J1stepDif <= 0)
-    {
-        J1dir = 1;
-    }
-    else
-    {
-        J1dir = 0;
-    }
-
-    if (J2stepDif <= 0)
-    {
-        J2dir = 1;
-    }
-    else
-    {
-        J2dir = 0;
-    }
-
-    if (J3stepDif <= 0)
-    {
-        J3dir = 1;
-    }
-    else
-    {
-        J3dir = 0;
-    }
-
-    if (J4stepDif <= 0)
-    {
-        J4dir = 1;
-    }
-    else
-    {
-        J4dir = 0;
-    }
-
-    if (J5stepDif <= 0)
-    {
-        J5dir = 1;
-    }
-    else
-    {
-        J5dir = 0;
-    }
-
-    if (J6stepDif <= 0)
-    {
-        J6dir = 1;
-    }
-    else
-    {
-        J6dir = 0;
-    }
-
-    if (TRstepDif <= 0)
-    {
-        TRdir = 1;
-    }
-    else
-    {
-        TRdir = 0;
-    }
-
     // determine if requested position is within axis limits
-    if ((J1dir == 1 and (J1StepM + J1stepDif > J1StepLim)) or (J1dir == 0 and (J1StepM - J1stepDif < 0)))
-    {
-        J1axisFault = 1;
-    }
-    if ((J2dir == 1 and (J2StepM + J2stepDif > J2StepLim)) or (J2dir == 0 and (J2StepM - J2stepDif < 0)))
-    {
-        J2axisFault = 1;
-    }
-    if ((J3dir == 1 and (J3StepM + J3stepDif > J3StepLim)) or (J3dir == 0 and (J3StepM - J3stepDif < 0)))
-    {
-        J3axisFault = 1;
-    }
-    if ((J4dir == 1 and (J4StepM + J4stepDif > J4StepLim)) or (J4dir == 0 and (J4StepM - J4stepDif < 0)))
-    {
-        J4axisFault = 1;
-    }
-    if ((J5dir == 1 and (J5StepM + J5stepDif > J5StepLim)) or (J5dir == 0 and (J5StepM - J5stepDif < 0)))
-    {
-        J5axisFault = 1;
-    }
-    if ((J6dir == 1 and (J6StepM + J6stepDif > J6StepLim)) or (J6dir == 0 and (J6StepM - J6stepDif < 0)))
-    {
-        J6axisFault = 1;
-    }
-    if ((TRdir == 1 and (TRStepM + TRstepDif > TRStepLim)) or (TRdir == 0 and (TRStepM - TRstepDif < 0)))
-    {
-        TRaxisFault = 1;
-    }
+  
+  // CHECK 4 Faults
     TotalAxisFault = J1axisFault + J2axisFault + J3axisFault + J4axisFault + J5axisFault + J6axisFault + TRaxisFault;
 
     // send move command if no axis limit error
@@ -3318,19 +2703,16 @@ if (function == "MJ")
     }
 
     inData = ""; // Clear recieved buffer
-                 ////////MOVE COMPLETE///////////
 }
 
-//----- LIVE CARTESIAN JOG  ---------------------------------------------------
-//-----------------------------------------------------------------------
+//----- LIVE CARTESIAN JOG  --------------------------------------------
+// TODO: Combine Cartesian and tool jog code 
 if (function == "LC")
 {
     delay(5);
     Serial.println();
 
     updatePos();
-
-    
 
     int J1axisFault = 0;
     int J2axisFault = 0;
@@ -3517,19 +2899,15 @@ if (function == "LC")
     }
 
     inData = ""; // Clear recieved buffer
-                 ////////MOVE COMPLETE///////////
 }
 
-//----- LIVE JOINT JOG  ---------------------------------------------------
-//-----------------------------------------------------------------------
+//----- LIVE JOINT JOG  ------------------------------------------------
 if (function == "LJ")
 {
     delay(5);
     Serial.println();
 
     updatePos();
-
-    
 
     int J1axisFault = 0;
     int J2axisFault = 0;
@@ -3715,19 +3093,15 @@ if (function == "LJ")
     }
 
     inData = ""; // Clear recieved buffer
-                 ////////MOVE COMPLETE///////////
 }
 
-//----- LIVE TOOL JOG  ---------------------------------------------------
-//-----------------------------------------------------------------------
+//----- LIVE TOOL JOG  -------------------------------------------------
 if (function == "LT")
 {
     delay(5);
     Serial.println();
 
     updatePos();
-
-    
 
     int J1axisFault = 0;
     int J2axisFault = 0;
@@ -3943,15 +3317,11 @@ if (function == "LT")
     }
 
     inData = ""; // Clear recieved buffer
-                 ////////MOVE COMPLETE///////////
 }
 
-//----- MOVE J IN JOINTS  ---------------------------------------------------
-//-----------------------------------------------------------------------
-
+//----- MOVE J IN JOINTS  ----------------------------------------------
 if (function == "RJ")
 {
-    
 
     int J1axisFault = 0;
     int J2axisFault = 0;
@@ -4072,8 +3442,7 @@ if (function == "RJ")
                  ////////MOVE COMPLETE///////////
 }
 
-//----- Jog T ---------------------------------------------------
-//-----------------------------------------------------------------------
+//----- Jog T ----------------------------------------------------------
 if (function == "JT")
 {
     float Xtool = Robot_Kin_Tool[0];
@@ -4248,7 +3617,6 @@ if (function == "JT")
 }
 
 //----- MOVE A (Arc) ---------------------------------------------------
-//-----------------------------------------------------------------------
 if (function == "MA")
 {
     int J1axisFault = 0;
@@ -4583,8 +3951,7 @@ if (function == "MA")
                  ////////MOVE COMPLETE///////////
 }
 
-//----- MOVE C (Cirlce) ---------------------------------------------------
-//-----------------------------------------------------------------------
+//----- MOVE C (Cirlce) ------------------------------------------------
 if (function == "MC")
 {
     int J1axisFault = 0;
@@ -4897,8 +4264,7 @@ if (function == "MC")
                  ////////MOVE COMPLETE///////////
 }
 
-//----- MOVE L ---------------------------------------------------
-//-----------------------------------------------------------------------
+//----- MOVE L ---------------------------------------------------------
 if (function == "ML")
 {
 
@@ -5193,16 +4559,19 @@ if (function == "ML")
     checkEncoders();
     sendRobotPos();
 }
-else
-{
-    inData = ""; // Clear recieved buffer
-}
-}
-}
 }
 
 class IkController
 {
+    void attach(){
+
+    }
+void updatePos()
+{
+    JangleIn[0] = (J1StepM - J1zeroStep) / J1StepDeg;
+
+    SolveFowardKinematic();
+}
 
     // DENAVIT HARTENBERG PARAMETERS SAME AS ROBODK
 
@@ -5215,10 +4584,10 @@ class IkController
         {180, -90, 36.25, 0}};
 
     int KinematicStatus;
-    currentstate
-        nextstate
+    int AxisFaultStatus;
 
-        float pose[16];
+    currentstate;
+        nextstate ;float pose[16];
 
     // declare in out vars
     float xyzuvw_Out[6];
@@ -5226,6 +4595,7 @@ class IkController
 
     float JangleOut[ROBOT_nDOFs];
     float JangleIn[ROBOT_nDOFs];
+
     float joints_estimate[ROBOT_nDOFs];
     float SolutionMatrix[ROBOT_nDOFs][4];
 
@@ -5311,17 +4681,12 @@ class IkController
             {
                 solVal = 0;
             }
-
-            // Serial.println(String(i) + "  Joint estimate : " + String(joints_estimate[i]) + " // Joint sol 1 : " + String(SolutionMatrix[i][0]) + " // Joint sol 2 : " + String(SolutionMatrix[i][1]));
         }
 
         if (NumberOfSol == 0)
         {
             KinematicError = 1;
         }
-
-        // Serial.println("Sol : " + String(solVal) + " Nb sol : " + String(NumberOfSol));
-
         for (int i = 0; i < ROBOT_nDOFs; i++)
         {
             JangleOut[i] = SolutionMatrix[i][solVal];
@@ -5331,7 +4696,7 @@ class IkController
     // This function input the JxangleIn into an array, send it to the foward kinematic solver and output the result into the position variables
     void SolveFowardKinematic()
     {
-        robot_set_AR3();
+        robot_data_grab();
 
         float target_xyzuvw[6];
         float joints[ROBOT_nDOFs];
@@ -5354,7 +4719,7 @@ class IkController
     void move(type){
         "ARC"
         "LIN"
-        "CRT"};
+        "CRC"};
 
     void jog(type){
 

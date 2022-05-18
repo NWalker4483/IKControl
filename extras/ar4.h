@@ -49,7 +49,9 @@
 #include <Encoder.h>
 
 #define ROBOT_nDOFs 6
-#define CALIB_SPEED 1    // deg/s
+#define CALIB_SPEED 3    // deg/s
+#define BACKOFF_DIST 1   // degs
+#define OVERDRIVE_TIME .25   // seconds
 #define WIGGLE_FACTOR 15 // stepss
 
 // Setup Joint Steppers
@@ -89,7 +91,7 @@ public:
                                          22.22222222};
 
     const float enc_mult[ROBOT_nDOFs] = {10, 10, 10, 10, 5, 10};
-
+    const float limit_dir[ROBOT_nDOFs] = {1, 1, 1, 1, 1, 1};
     const float tool_step_deg = 14.28571429;
 
     AR4()
@@ -138,10 +140,34 @@ public:
         axis[3].setTargetSpeed(-CALIB_SPEED);
         axis[4].setTargetSpeed(CALIB_SPEED);
         axis[5].setTargetSpeed(-CALIB_SPEED);
+
+        driveLimits();
+
+        axis[0].move(-BACKOFF_DIST);
+        axis[1].move(-BACKOFF_DIST);
+        axis[2].move(BACKOFF_DIST);
+        axis[3].move(BACKOFF_DIST);
+        axis[4].move(-BACKOFF_DIST);
+        axis[5].move(BACKOFF_DIST);
+
+        runToPositions();
+
+        axis[0].setTargetSpeed(CALIB_SPEED/2.);
+        axis[1].setTargetSpeed(CALIB_SPEED/2.);
+        axis[2].setTargetSpeed(-CALIB_SPEED/2.);
+        axis[3].setTargetSpeed(-CALIB_SPEED/2.);
+        axis[4].setTargetSpeed(CALIB_SPEED/2.);
+        axis[5].setTargetSpeed(-CALIB_SPEED/2.);
         
+        driveLimits();
+
+        // Overdrive at half speed
         disableTargetTracking();
-        // while (not at limits)
-        //     run();
+        unsigned int start_time = millis();
+        unsigned int drive_time = 1000L * OVERDRIVE_TIME;
+
+ 
+        delay(500);
 
         // Apply Calibration Offsets
         // calib_offsets[i]
@@ -161,8 +187,20 @@ public:
 
     void driveLimits(bool MOVE_J1, bool MOVE_J2, bool MOVE_J3, bool MOVE_J4, bool MOVE_J5, bool MOVE_J6)
     {
+        bool is_active[ROBOT_nDOFs] = {}
+        disableTargetTracking();
+        while ()
+        {
+            for (int i = 0; i < ROBOT_nDOFs; i++) {
+                if () // Not At switch 
+
+                axis[i].run();
+            }
+        }
+
+        enableTargetTracking();
     }
-    
+
     unsigned int getMillis() { return millis(); };
 
     void computeAxisPositions(double *axis_positions)
@@ -174,14 +212,10 @@ public:
         }
     };
 
-    void updateMotorSpeeds(double axis_speeds)
+    void updateMotorSpeeds(double *axis_speeds)
     {
         for (int i = 0; i < 6; i++)
-            *(axis_positions) = (steppers[i]->currentPosition() / step_deg[i]);
-
-        // do the math stuff
-        for (int i = 0; i < 6; i++)
-            steppers[i]->setTargetSpeed(*(axis_speeds + i));
+            steppers[i]->setTargetSpeed(*(axis_speeds + i) * step_deg[i]);
     }
 
     void pollMotors()
@@ -189,25 +223,24 @@ public:
         for (int i = 0; i < 6; i++)
             steppers[i]->pollMotor();
         tool.pollMotor();
-        // track->pollMotor();
+        // track.pollMotor();
     };
 
-private:
     AxisStepper *steppers[ROBOT_nDOFs];
     Encoder *encoders[ROBOT_nDOFs];
 
-    void resetEncoders()
-    {
-        // set encoders to current position
-        for (int i = 0; i < ROBOT_nDOFs; i++)
-            collision_states[i] = false;
+    // void resetEncoders()
+    // {
+    //     // set encoders to current position
+    //     for (int i = 0; i < ROBOT_nDOFs; i++)
+    //         collision_states[i] = false;
 
-        //  for (int i = 0; i < ROBOT_nDOFs; i++) encoders[i]->write();
-        J1encPos.write(J1StepM * J1encMult);
-        J2encPos.write(J2StepM * J2encMult);
-        J3encPos.write(J3StepM * J3encMult);
-        J4encPos.write(J4StepM * J4encMult);
-        J5encPos.write(J5StepM * J5encMult);
-        J6encPos.write(J6StepM * J6encMult);
-    }
+    //     //  for (int i = 0; i < ROBOT_nDOFs; i++) encoders[i]->write();
+    //     J1encPos.write(J1StepM * J1encMult);
+    //     J2encPos.write(J2StepM * J2encMult);
+    //     J3encPos.write(J3StepM * J3encMult);
+    //     J4encPos.write(J4StepM * J4encMult);
+    //     J5encPos.write(J5StepM * J5encMult);
+    //     J6encPos.write(J6StepM * J6encMult);
+    // }
 };

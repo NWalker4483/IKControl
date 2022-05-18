@@ -20,7 +20,7 @@ const int Output40 = 40;
 const int Output41 = 41;
 
 AR4 robot;
-IkController controller(robot);
+IkController controller;
 
 void setup()
 {
@@ -175,63 +175,6 @@ void loop()
         int J5stepDif = J5StepM - J5futStepM;
         int J6stepDif = J6StepM - J6futStepM;
         int TRstepDif = 0;
-
-        // determine motor directions
-        if (J1stepDif <= 0)
-        {
-          J1dir = 1;
-        }
-        else
-        {
-          J1dir = 0;
-        }
-
-        if (J2stepDif <= 0)
-        {
-          J2dir = 1;
-        }
-        else
-        {
-          J2dir = 0;
-        }
-
-        if (J3stepDif <= 0)
-        {
-          J3dir = 1;
-        }
-        else
-        {
-          J3dir = 0;
-        }
-
-        if (J4stepDif <= 0)
-        {
-          J4dir = 1;
-        }
-        else
-        {
-          J4dir = 0;
-        }
-
-        if (J5stepDif <= 0)
-        {
-          J5dir = 1;
-        }
-        else
-        {
-          J5dir = 0;
-        }
-
-        if (J6stepDif <= 0)
-        {
-          J6dir = 1;
-        }
-        else
-        {
-          J6dir = 0;
-        }
-
-        TRdir = 0;
 
         resetEncoders();
         driveMotorsJ(abs(J1stepDif), abs(J2stepDif), abs(J3stepDif), abs(J4stepDif), abs(J5stepDif), abs(J6stepDif), abs(TRstepDif), J1dir, J2dir, J3dir, J4dir, J5dir, J6dir, TRdir, SpeedType, SpeedVal, ACCspd, DCCspd, ACCramp);
