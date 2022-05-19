@@ -90,7 +90,7 @@ void loop()
           result += " J" + String(i + 1) + " = " + (int)digitalRead(robot.calib_pins[i]) + " ";
         }
         delay(5);
-        Serial.println(TestLim);
+        Serial.println(result);
       }
 
       //-----COMMAND SET TOOL FRAME---------------------------------------------------DONE
@@ -126,9 +126,13 @@ void loop()
       //-----COMMAND READ ENCODERS---------------------------------------------------DONE
       if (function == "RE")
       {
-        String Read = " J1 = " + String(robot.encoders[0]->read()) + "   J2 = " + String(robot.encoders[1]->read()) + "   J3 = " + String(robot.encoders[2]->read()) + "   J4 = " + String(robot.encoders[3]->read()) + "   J5 = " + String(robot.encoders[4]->read()) + "   J6 = " + String(robot.encoders[5]->read());
+       String result;
+        for (int i = 0; i < ROBOT_nDOFs; i++)
+        {
+          result += " J" + String(i + 1) + " = " +  String(robot.encoders[0]->read()) + " ";
+        }
         delay(5);
-        Serial.println(Read);
+        Serial.println(result);
       }
 
       //-----COMMAND TO WAIT TIME---------------------------------------------------DONE
