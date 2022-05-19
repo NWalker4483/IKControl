@@ -3199,14 +3199,6 @@ class IkController
         //----- MOVE A (Arc) ---------------------------------------------------
         if (function == "MA")
         {
-            int J1axisFault = 0;
-            int J2axisFault = 0;
-            int J3axisFault = 0;
-            int J4axisFault = 0;
-            int J5axisFault = 0;
-            int J6axisFault = 0;
-            int TotalAxisFault = 0;
-
             String Alarm = "0";
             float curWayDis, speedSP, Xvect, Yvect, Zvect, calcStepGap, theta;
             float axis[3];

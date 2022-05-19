@@ -1,21 +1,3 @@
-//-----COMMAND CALIBRATE TRACK---------------------------------------------------
-if (function == "CT")
-{
-  int axis7lengthStart = inData.indexOf('A');
-  int axis7rotStart = inData.indexOf('B');
-  int axis7stepsStart = inData.indexOf('C');
-  axis7length = inData.substring(axis7lengthStart + 1, axis7rotStart).toFloat();
-  axis7rot = inData.substring(axis7rotStart + 1, axis7stepsStart).toFloat();
-  axis7steps = inData.substring(axis7stepsStart + 1).toFloat();
-  TRaxisLimNeg = 0;
-  TRaxisLimPos = axis7length;
-  TRaxisLim = TRaxisLimPos + TRaxisLimNeg;
-  TRStepDeg = axis7steps / axis7rot;
-  TRStepLim = TRaxisLim * TRStepDeg;
-  delay(5);
-  Serial.print("Done");
-}
-
 
 
 //-----COMMAND ECHO TEST MESSAGE---------------------------------------------------

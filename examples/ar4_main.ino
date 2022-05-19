@@ -27,13 +27,30 @@ const int Output41 = 41;
 AR4 robot;
 IkController controller;
 AxisStepper track;
-void sendRobotPos()
+
+void printRobotStatus()
 {
   robot.run();
-  // controller.SolveFowardKinematic();
-  String sendPos = "A" + String(robot.axis[0].currentPosition(), 3) + "B" + String(robot.axis[1].currentPosition(), 3) + "C" + String(robot.axis[2].currentPosition(), 3) + "D" + String(robot.axis[3].currentPosition(), 3) + "E" + String(robot.axis[4].currentPosition(), 3) + "F" + String(robot.axis[5].currentPosition(), 3) + "G" + String(xyzuvw_Out[0], 3) + "H" + String(xyzuvw_Out[1], 3) + "I" + String(xyzuvw_Out[2], 3) + "J" + String(xyzuvw_Out[3], 3) + "K" + String(xyzuvw_Out[4], 3) + "L" + String(xyzuvw_Out[5], 3) + "M" + speedViolation + "N" + debug + "O" + flag + "P" + 0;
+  controller.SolveFowardKinematic();
+  String status;
+  status += "A" + String(robot.axis[0].currentPosition(), 3);
+  status += "B" + String(robot.axis[1].currentPosition(), 3);
+  status += "C" + String(robot.axis[2].currentPosition(), 3);
+  status += "D" + String(robot.axis[3].currentPosition(), 3);
+  status += "E" + String(robot.axis[4].currentPosition(), 3);
+  status += "F" + String(robot.axis[5].currentPosition(), 3);
+  status += "G" + String(xyzuvw_Out[0], 3);
+  status += "H" + String(xyzuvw_Out[1], 3);
+  status += "I" + String(xyzuvw_Out[2], 3);
+  status += "J" + String(xyzuvw_Out[3], 3);
+  status += "K" + String(xyzuvw_Out[4], 3);
+  status += "L" + String(xyzuvw_Out[5], 3);
+  status += "M" + speedViolation;
+  status += "N" + debug;
+  status += "O" + flag;
+  status += "P" + "0";
   delay(5);
-  Serial.println(sendPos);
+  Serial.println(status);
   speedViolation = "0";
   flag = "";
 }
@@ -62,9 +79,12 @@ void setup()
 void loop()
 {
   robot.run();
+  robot.tool.run();
   while (Serial.available())
   {
     robot.run(); // Calling incase I'm stuck in while loop
+    robot.tool.run();
+
     char recieved = Serial.read();
     inData += recieved;
     // Process message when new line character is recieved
@@ -84,10 +104,10 @@ void loop()
       //-----COMMAND TEST LIMIT SWITCHES-----------------------------------------DONE
       if (function == "TL")
       {
-        String result;
+        String result = " ";
         for (int i = 0; i < ROBOT_nDOFs; i++)
         {
-          result += " J" + String(i + 1) + " = " + (int)digitalRead(robot.calib_pins[i]) + " ";
+          result += "J" + String(i + 1) + " = " + (int)digitalRead(robot.limit_pins[i]) + "  ";
         }
         delay(5);
         Serial.println(result);
@@ -126,10 +146,10 @@ void loop()
       //-----COMMAND READ ENCODERS---------------------------------------------------DONE
       if (function == "RE")
       {
-       String result;
+        String result = " ";
         for (int i = 0; i < ROBOT_nDOFs; i++)
         {
-          result += " J" + String(i + 1) + " = " +  String(robot.encoders[0]->read()) + " ";
+          result += "J" + String(i + 1) + " = " + String(robot.encoders[0]->read()) + "  ";
         }
         delay(5);
         Serial.println(result);
@@ -209,32 +229,13 @@ void loop()
         Serial.println("Done");
       }
 
-
-
-
-
-
-
-
-
-      //-----COMMAND REQUEST POSITION------------------------------------------
-      //-----------------------------------------------------------------------
+      //-----COMMAND REQUEST POSITION------------------------------------------DONE
       if (function == "RP")
       {
-        sendRobotPos();
+        printRobotStatus();
+        inData = ""; // Clear recieved buffer
       }
 
-      //-----COMMAND ZERO TRACK------------------------------------------------
-      //----------------------------------------------------------------------
-      if (function == "ZT")
-      {
-      }
-
-      //-----COMMAND CORRECT POSITION-------------------------------------------
-      if (function == "CP")
-      {
-        correctRobotPos();
-      }
       //-----COMMAND SEND POSITION----------------------------------------------
       //------------------------------------------------------------------------
       if (function == "SP")
@@ -247,25 +248,39 @@ void loop()
         int J6angStart = inData.indexOf('F');
         int TRstepStart = inData.indexOf('G');
 
-        float J1angValue = ((inData.substring(J1angStart + 1, J2angStart).toFloat());
-        float J2angValue = inData.indexOf('B');
-        float J3angValue = inData.indexOf('C');
-        float J4angValue = inData.indexOf('D');
-        float J5angValue = inData.indexOf('E');
-        float J6angValue = inData.indexOf('F');
-        float TRstepValue = inData.indexOf('G');
+        float J1angValue = (inData.substring(J1angStart + 1, J2angStart).toFloat());
+        float J2angValue = (inData.substring(J1angStart + 1, J2angStart).toFloat());
+        float J3angValue = (inData.substring(J1angStart + 1, J2angStart).toFloat());
+        float J4angValue = (inData.substring(J1angStart + 1, J2angStart).toFloat());
+        float J5angValue = (inData.substring(J1angStart + 1, J2angStart).toFloat());
+        float J6angValue = (inData.substring(J1angStart + 1, J2angStart).toFloat());
+        float TRstepValue = 0; // inData.indexOf('G');
 
-        // robot 
+        // robot.SETPOSITIONS
 
-        // J1StepM = ((inData.substring(J1angStart + 1, J2angStart).toFloat()) + J1axisLimNeg) * J1StepDeg;
-        // J2StepM = ((inData.substring(J2angStart + 1, J3angStart).toFloat()) + J2axisLimNeg) * J2StepDeg;
-        // J3StepM = ((inData.substring(J3angStart + 1, J4angStart).toFloat()) + J3axisLimNeg) * J3StepDeg;
-        // J4StepM = ((inData.substring(J4angStart + 1, J5angStart).toFloat()) + J4axisLimNeg) * J4StepDeg;
-        // J5StepM = ((inData.substring(J5angStart + 1, J6angStart).toFloat()) + J5axisLimNeg) * J5StepDeg;
-        // J6StepM = ((inData.substring(J6angStart + 1, TRstepStart).toFloat()) + J6axisLimNeg) * J6StepDeg;
-        // TRStepM = inData.substring(TRstepStart + 1).toFloat();
         delay(5);
         Serial.println("Done");
+      }
+
+      //-----COMMAND CORRECT POSITION-------------------------------------------
+      if (function == "CP")
+      {
+        // TODO: Allow open loop joints
+        // zero_offsets
+        // Set Position using encoders
+        printRobotStatus();
+      }
+      //-----COMMAND ZERO TRACK------------------------------------------------
+      //----------------------------------------------------------------------
+      if (function == "ZT")
+      {
+      }
+      //-----COMMAND CALIBRATE TRACK---------------------------------------------------
+      //-----------------------------------------------------------------------
+      if (function == "CT")
+      {
+        delay(5);
+        Serial.print("Done");
       }
 
       //----- LIVE CARTESIAN JOG  ----------------------------------------------

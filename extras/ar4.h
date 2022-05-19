@@ -1,4 +1,4 @@
-// VERSION 1.1
+// VERSION 1.2
 
 /*  AR4 - Stepper motor robot control software
     Copyright (c) 2021, Chris Annin
@@ -70,15 +70,16 @@ Encoder encoder4(20, 21);
 Encoder encoder5(23, 22);
 Encoder encoder6(24, 25);
 
-const int calib_pins[ROBOT_nDOFs] = {26, 27, 28, 29, 30, 31};
-// degrees from limit switch to offset calibration
-const float calib_offsets[ROBOT_nDOFs] = {-1, 2, 4.1, -1.5, 3, -7};
-const float zero_offsets[ROBOT_nDOFs] = {-1, 2, 4.1, -1.5, 3, -7};
+const int limit_pins[ROBOT_nDOFs] = {26, 27, 28, 29, 30, 31};
 
 class AR4 : public MultiAxis<ROBOT_nDOFs>
 {
 
 public:
+    // degrees from limit switch to offset calibration
+    float calib_offsets[ROBOT_nDOFs] = {-1, 2, 4.1, -1.5, 3, -7};
+    float zero_offsets[ROBOT_nDOFs] = {0, 0, 0, 0, 0, 0};
+
     const float DHparams[ROBOT_nDOFs][4] = {
         {0, 0, 169.77, 0},
         {-90, -90, 0, 64.2},
@@ -90,8 +91,8 @@ public:
     AxisStepper *steppers[ROBOT_nDOFs];
     Encoder *encoders[ROBOT_nDOFs];
     AxisStepper tool(12, 13);
-    bool collision_states[ROBOT_nDOFs];
 
+    bool collision_states[ROBOT_nDOFs];
     // Steps per degree on each axis
     const float step_deg[ROBOT_nDOFs] = {44.44444444,
                                          55.55555556,
@@ -101,7 +102,7 @@ public:
                                          22.22222222};
 
     const float enc_mult[ROBOT_nDOFs] = {10, 10, 10, 10, 5, 10};
-    const float limit_dir[ROBOT_nDOFs] = {1, 1, 1, 1, 1, 1};
+    const float limit_dir[ROBOT_nDOFs] = {1, 1-, 1, 1, 1, 1};
     const float tool_step_deg = 14.28571429;
 
     AR4()
@@ -137,7 +138,7 @@ public:
         tool.setResolution(WIGGLE_FACTOR * (1L / tool_step_deg));
 
         for (int i = 0; i < ROBOT_nDOFs; i++)
-            pinMode(calib_pins[i], INPUT);
+            pinMode(limit_pins[i], INPUT);
     }
   
     void calibrate()
@@ -231,6 +232,5 @@ public:
     {
         for (int i = 0; i < 6; i++)
             steppers[i]->pollMotor();
-        // tool.pollMotor();
     };
 };
