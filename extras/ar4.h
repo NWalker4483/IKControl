@@ -73,6 +73,7 @@ Encoder encoder6(24, 25);
 const int calib_pins[ROBOT_nDOFs] = {26, 27, 28, 29, 30, 31};
 // degrees from limit switch to offset calibration
 const float calib_offsets[ROBOT_nDOFs] = {-1, 2, 4.1, -1.5, 3, -7};
+const float zero_offsets[ROBOT_nDOFs] = {-1, 2, 4.1, -1.5, 3, -7};
 
 class AR4 : public MultiAxis<ROBOT_nDOFs>
 {
@@ -89,7 +90,6 @@ public:
     AxisStepper *steppers[ROBOT_nDOFs];
     Encoder *encoders[ROBOT_nDOFs];
     AxisStepper tool(12, 13);
-    // AxisStepper track(12, 13);
     bool collision_states[ROBOT_nDOFs];
 
     // Steps per degree on each axis
@@ -139,7 +139,7 @@ public:
         for (int i = 0; i < ROBOT_nDOFs; i++)
             pinMode(calib_pins[i], INPUT);
     }
-
+  
     void calibrate()
     {
         setLimitMode(0); // Run at Constant Speed
@@ -196,18 +196,18 @@ public:
 
     void driveLimits(bool MOVE_J1, bool MOVE_J2, bool MOVE_J3, bool MOVE_J4, bool MOVE_J5, bool MOVE_J6)
     {
-        bool is_active[ROBOT_nDOFs] = {} disableTargetTracking();
-        while ()
-        {
-            for (int i = 0; i < ROBOT_nDOFs; i++)
-            {
-                if () // Not At switch
+        // bool is_active[ROBOT_nDOFs] = {} disableTargetTracking();
+        // while ()
+        // {
+        //     for (int i = 0; i < ROBOT_nDOFs; i++)
+        //     {
+        //         if () // Not At switch
 
-                    axis[i].run();
-            }
-        }
+        //             axis[i].run();
+        //     }
+        // }
 
-        enableTargetTracking();
+        // enableTargetTracking();
     }
 
     unsigned int getMillis() { return millis(); };
@@ -231,21 +231,6 @@ public:
     {
         for (int i = 0; i < 6; i++)
             steppers[i]->pollMotor();
-        tool.pollMotor();
+        // tool.pollMotor();
     };
-    
-    // void resetEncoders()
-    // {
-    //     // set encoders to current position
-    //     for (int i = 0; i < ROBOT_nDOFs; i++)
-    //         collision_states[i] = false;
-
-    //     //  for (int i = 0; i < ROBOT_nDOFs; i++) encoders[i]->write();
-    //     J1encPos.write(J1StepM * J1encMult);
-    //     J2encPos.write(J2StepM * J2encMult);
-    //     J3encPos.write(J3StepM * J3encMult);
-    //     J4encPos.write(J4StepM * J4encMult);
-    //     J5encPos.write(J5StepM * J5encMult);
-    //     J6encPos.write(J6StepM * J6encMult);
-    // }
 };

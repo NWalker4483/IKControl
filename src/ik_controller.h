@@ -91,75 +91,6 @@ typedef float tRobot[66];
         Matrix_Copy(inout, out);          \
     }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// NEW DECLARATION OF VARIABLES
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-#ifndef M_PI
-#define M_PI 3.14159265358979323846
-#endif
-
-/// DHM Table parameters
-#define DHM_Alpha 0
-#define DHM_A 1
-#define DHM_Theta 2
-#define DHM_D 3
-
-/// Custom robot base (user frame)
-Matrix4x4 Robot_BaseFrame = {1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};
-
-/// Custom robot tool (tool frame, end of arm tool or TCP)
-Matrix4x4 Robot_ToolFrame = {1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};
-
-/// Robot parameters
-/// All robot data is held in a large array
-tRobot Robot_Data = {0};
-
-// These global variable are also pointers, allowing to put the variables inside the Robot_Data
-/// DHM table
-float *Robot_Kin_DHM_Table = Robot_Data + 0 * Table_Size;
-
-/// xyzwpr of the base
-float *Robot_Kin_Base = Robot_Data + 6 * Table_Size;
-
-/// xyzwpr of the tool
-float *Robot_Kin_Tool = Robot_Data + 7 * Table_Size;
-
-/// Robot lower limits
-float *Robot_JointLimits_Upper = Robot_Data + 8 * Table_Size;
-
-/// Robot upper limits
-float *Robot_JointLimits_Lower = Robot_Data + 9 * Table_Size;
-
-/// Robot axis senses
-float *Robot_Senses = Robot_Data + 10 * Table_Size;
-
-// A value mappings
-float *Robot_Kin_DHM_L1 = Robot_Kin_DHM_Table + 0 * Table_Size;
-float *Robot_Kin_DHM_L2 = Robot_Kin_DHM_Table + 1 * Table_Size;
-float *Robot_Kin_DHM_L3 = Robot_Kin_DHM_Table + 2 * Table_Size;
-float *Robot_Kin_DHM_L4 = Robot_Kin_DHM_Table + 3 * Table_Size;
-float *Robot_Kin_DHM_L5 = Robot_Kin_DHM_Table + 4 * Table_Size;
-float *Robot_Kin_DHM_L6 = Robot_Kin_DHM_Table + 5 * Table_Size;
-
-float &Robot_Kin_DHM_A2(Robot_Kin_DHM_Table[1 * Table_Size + 1]);
-float &Robot_Kin_DHM_A3(Robot_Kin_DHM_Table[2 * Table_Size + 1]);
-float &Robot_Kin_DHM_A4(Robot_Kin_DHM_Table[3 * Table_Size + 1]);
-
-// D value mappings
-float &Robot_Kin_DHM_D1(Robot_Kin_DHM_Table[0 * Table_Size + 3]);
-float &Robot_Kin_DHM_D2(Robot_Kin_DHM_Table[1 * Table_Size + 3]);
-float &Robot_Kin_DHM_D4(Robot_Kin_DHM_Table[3 * Table_Size + 3]);
-float &Robot_Kin_DHM_D6(Robot_Kin_DHM_Table[5 * Table_Size + 3]);
-
-// Theta value mappings (mastering)
-float &Robot_Kin_DHM_Theta1(Robot_Kin_DHM_Table[0 * Table_Size + 2]);
-float &Robot_Kin_DHM_Theta2(Robot_Kin_DHM_Table[1 * Table_Size + 2]);
-float &Robot_Kin_DHM_Theta3(Robot_Kin_DHM_Table[2 * Table_Size + 2]);
-float &Robot_Kin_DHM_Theta4(Robot_Kin_DHM_Table[3 * Table_Size + 2]);
-float &Robot_Kin_DHM_Theta5(Robot_Kin_DHM_Table[4 * Table_Size + 2]);
-float &Robot_Kin_DHM_Theta6(Robot_Kin_DHM_Table[5 * Table_Size + 2]);
-
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // MATRIX HELPERS
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -499,16 +430,16 @@ void inverse_kinematics_raw(const T pose[16], const tRobot DK, const T joints_ap
     T q1;
     int i1;
     T c_Hout[16];
-    T k2;
-    T k1;
-    T ai;
-    T B;
-    T C;
-    T s31;
-    T c31;
-    T q13_idx_2;
-    T bb_div_cc;
-    T q13_idx_0;
+    T k2
+    ,k1
+    ,ai
+    ,B
+    ,C
+    ,s31
+    ,c31
+    ,q13_idx_2
+    ,bb_div_cc
+    ,q13_idx_0;
     for (i0 = 0; i0 < 6; i0++)
     {
         joints_approx[i0] = DK[60 + i0] * joints_approx_in[i0];
@@ -759,6 +690,75 @@ void inverse_kinematics_raw(const T pose[16], const tRobot DK, const T joints_ap
 // CALCULATE POSITIONS
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// NEW DECLARATION OF VARIABLES
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
+
+/// DHM Table parameters
+#define DHM_Alpha 0
+#define DHM_A 1
+#define DHM_Theta 2
+#define DHM_D 3
+
+/// Custom robot base (user frame)
+Matrix4x4 Robot_BaseFrame = {1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};
+
+/// Custom robot tool (tool frame, end of arm tool or TCP)
+Matrix4x4 Robot_ToolFrame = {1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};
+
+/// Robot parameters
+/// All robot data is held in a large array
+tRobot Robot_Data = {0};
+
+// These global variable are also pointers, allowing to put the variables inside the Robot_Data
+/// DHM table
+float *Robot_Kin_DHM_Table = Robot_Data + 0 * Table_Size;
+
+/// xyzwpr of the base
+float *Robot_Kin_Base = Robot_Data + 6 * Table_Size;
+
+/// xyzwpr of the tool
+float *Robot_Kin_Tool = Robot_Data + 7 * Table_Size;
+
+/// Robot lower limits
+float *Robot_JointLimits_Upper = Robot_Data + 8 * Table_Size;
+
+/// Robot upper limits
+float *Robot_JointLimits_Lower = Robot_Data + 9 * Table_Size;
+
+/// Robot axis senses
+float *Robot_Senses = Robot_Data + 10 * Table_Size;
+
+// A value mappings
+float *Robot_Kin_DHM_L1 = Robot_Kin_DHM_Table + 0 * Table_Size;
+float *Robot_Kin_DHM_L2 = Robot_Kin_DHM_Table + 1 * Table_Size;
+float *Robot_Kin_DHM_L3 = Robot_Kin_DHM_Table + 2 * Table_Size;
+float *Robot_Kin_DHM_L4 = Robot_Kin_DHM_Table + 3 * Table_Size;
+float *Robot_Kin_DHM_L5 = Robot_Kin_DHM_Table + 4 * Table_Size;
+float *Robot_Kin_DHM_L6 = Robot_Kin_DHM_Table + 5 * Table_Size;
+
+float &Robot_Kin_DHM_A2(Robot_Kin_DHM_Table[1 * Table_Size + 1]);
+float &Robot_Kin_DHM_A3(Robot_Kin_DHM_Table[2 * Table_Size + 1]);
+float &Robot_Kin_DHM_A4(Robot_Kin_DHM_Table[3 * Table_Size + 1]);
+
+// D value mappings
+float &Robot_Kin_DHM_D1(Robot_Kin_DHM_Table[0 * Table_Size + 3]);
+float &Robot_Kin_DHM_D2(Robot_Kin_DHM_Table[1 * Table_Size + 3]);
+float &Robot_Kin_DHM_D4(Robot_Kin_DHM_Table[3 * Table_Size + 3]);
+float &Robot_Kin_DHM_D6(Robot_Kin_DHM_Table[5 * Table_Size + 3]);
+
+// Theta value mappings (mastering)
+float &Robot_Kin_DHM_Theta1(Robot_Kin_DHM_Table[0 * Table_Size + 2]);
+float &Robot_Kin_DHM_Theta2(Robot_Kin_DHM_Table[1 * Table_Size + 2]);
+float &Robot_Kin_DHM_Theta3(Robot_Kin_DHM_Table[2 * Table_Size + 2]);
+float &Robot_Kin_DHM_Theta4(Robot_Kin_DHM_Table[3 * Table_Size + 2]);
+float &Robot_Kin_DHM_Theta5(Robot_Kin_DHM_Table[4 * Table_Size + 2]);
+float &Robot_Kin_DHM_Theta6(Robot_Kin_DHM_Table[5 * Table_Size + 2]);
+
 void robot_data_reset()
 {
     // Reset user base and tool frames
@@ -784,7 +784,7 @@ bool robot_joints_valid(const T joints[ROBOT_nDOFs])
 
     for (int i = 0; i < ROBOT_nDOFs; i++)
     {
-        if (joints[i] < -Robot_JointLimits_Lower[i] || joints[i] > Robot_JointLimits_Upper[i])
+        if (joints[i] < Robot_JointLimits_Lower[i] || joints[i] > Robot_JointLimits_Upper[i])
         {
             return false;
         }
@@ -795,7 +795,6 @@ bool robot_joints_valid(const T joints[ROBOT_nDOFs])
 void correctRobotPos()
 // Calculate robot tip position
 {
-    // robot.run();
     JangleIn[0] = robot.axis[0].currentPosition();
     JangleIn[1] = robot.axis[1].currentPosition();
     JangleIn[2] = robot.axis[2].currentPosition();
@@ -810,7 +809,7 @@ void correctRobotPos()
 // DRIVE MOTORS J
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void driveMotorsJ(int J1step, int J2step, int J3step, int J4step, int J5step, int J6step, int TRstep, int J1dir, int J2dir, int J3dir, int J4dir, int J5dir, int J6dir, int TRdir, String SpeedType, float SpeedVal, float ACCspd, float DCCspd, float ACCramp)
+void driveMotorsJ(int J1step, int J2step, int J3step, int J4step, int J5step, int J6step, int TRstep, String SpeedType, float SpeedVal, float ACCspd, float DCCspd, float ACCramp)
 {
 
     // FIND HIGHEST STEP
@@ -2007,24 +2006,7 @@ void driveMotorsL(int J1step, int J2step, int J3step, int J4step, int J5step, in
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-//-----COMMAND SET TOOL FRAME---------------------------------------------------
-if (function == "TF")
-{
-    int TFxStart = inData.indexOf('A');
-    int TFyStart = inData.indexOf('B');
-    int TFzStart = inData.indexOf('C');
-    int TFrzStart = inData.indexOf('D');
-    int TFryStart = inData.indexOf('E');
-    int TFrxStart = inData.indexOf('F');
-    Robot_Kin_Tool[0] = inData.substring(TFxStart + 1, TFyStart).toFloat();
-    Robot_Kin_Tool[1] = inData.substring(TFyStart + 1, TFzStart).toFloat();
-    Robot_Kin_Tool[2] = inData.substring(TFzStart + 1, TFrzStart).toFloat();
-    Robot_Kin_Tool[3] = inData.substring(TFrzStart + 1, TFryStart).toFloat() * M_PI / 180;
-    Robot_Kin_Tool[4] = inData.substring(TFryStart + 1, TFrxStart).toFloat() * M_PI / 180;
-    Robot_Kin_Tool[5] = inData.substring(TFrxStart + 1).toFloat() * M_PI / 180;
-    delay(5);
-    Serial.println("Done");
-}
+
 
 //----- MOVE J --------------------------------------------------------
 if (function == "MJ")
@@ -3033,10 +3015,18 @@ if (function == "JT")
 
 class IkController
 {
-    void attach()
+    void attach(MultiAxis<6> &bot, void * run_method)
     {
-    }
 
+    }
+    void setToolFrame(float x, float y, float z, float rx, float ry, float rz){
+        Robot_Kin_Tool[0] = x;
+        Robot_Kin_Tool[1] = y;
+        Robot_Kin_Tool[2] = z;
+        Robot_Kin_Tool[3] = rx;
+        Robot_Kin_Tool[4] = ry;
+        Robot_Kin_Tool[5] = rz;
+    }
     void updatePos()
     {
         JangleIn[0] = (J1StepM - J1zeroStep) / J1StepDeg;
@@ -3050,10 +3040,6 @@ class IkController
     int KinematicStatus;
     int AxisFaultStatus;
 
-    currentstate;
-    nextstate;
-    float pose[16];
-
     // declare in out vars
     float xyzuvw_Out[6];
     float xyzuvw_In[7];
@@ -3064,16 +3050,9 @@ class IkController
     float joints_estimate[ROBOT_nDOFs];
     float SolutionMatrix[ROBOT_nDOFs][4];
 
-    IkController(MultiAxis<6> &bot)
+    IkController()
     {
-    }
-
-    void updatejoints()
-    {
-        for (int i = 0; i > ROBOT_nDOFs; i++)
-        {
-            JangleIn[i] = JangleOut[i];
-        }
+        
     }
 
     void robot_data_grab()
@@ -3114,22 +3093,9 @@ class IkController
 
         for (size_t i = 0; i < ROBOT_nDOFs; i++)
         {
-        Robot_JointLimits_Lower[0] = J1axisLimNeg;
-        Robot_JointLimits_Upper[0] = J1axisLimPos;
+            Robot_JointLimits_Lower[i] = robot.axis[i].LowerPoseLimit();
+            Robot_JointLimits_Upper[i] = robot.axis[i].UpperPoseLimit();
         }
-
-        Robot_JointLimits_Lower[0] = J1axisLimNeg;
-        Robot_JointLimits_Upper[0] = J1axisLimPos;
-        Robot_JointLimits_Lower[1] = J2axisLimNeg;
-        Robot_JointLimits_Upper[1] = J2axisLimPos;
-        Robot_JointLimits_Lower[2] = J3axisLimNeg;
-        Robot_JointLimits_Upper[2] = J3axisLimPos;
-        Robot_JointLimits_Lower[3] = J4axisLimNeg;
-        Robot_JointLimits_Upper[3] = J4axisLimPos;
-        Robot_JointLimits_Lower[4] = J5axisLimNeg;
-        Robot_JointLimits_Upper[4] = J5axisLimPos;
-        Robot_JointLimits_Lower[5] = J6axisLimNeg;
-        Robot_JointLimits_Upper[5] = J6axisLimPos;
     }
 
     void SolveInverseKinematic()
@@ -3206,7 +3172,6 @@ class IkController
         }
     }
 
-    // This function input the JxangleIn into an array, send it to the foward kinematic solver and output the result into the position variables
     void SolveFowardKinematic()
     {
         robot_data_grab();
@@ -4176,9 +4141,7 @@ void jog(type){
     "ARC"
     "LIN"
     "CRC"
-    
-    
-    
-    };
+
+};
 }
 ;
