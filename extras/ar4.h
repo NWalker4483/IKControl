@@ -70,13 +70,13 @@ Encoder encoder4(20, 21);
 Encoder encoder5(23, 22);
 Encoder encoder6(24, 25);
 
-const int limit_pins[ROBOT_nDOFs] = {26, 27, 28, 29, 30, 31};
-
 class AR4 : public MultiAxis<ROBOT_nDOFs>
 {
 
 public:
     // degrees from limit switch to offset calibration
+
+    const int limit_pins[ROBOT_nDOFs] = {26, 27, 28, 29, 30, 31};
     float calib_offsets[ROBOT_nDOFs] = {-1, 2, 4.1, -1.5, 3, -7};
     float zero_offsets[ROBOT_nDOFs] = {0, 0, 0, 0, 0, 0};
 
@@ -115,6 +115,14 @@ public:
         steppers[4] = &stepper5;
         steppers[5] = &stepper6;
 
+        // Targets are going to be set on the joint level and not the step level
+        steppers[0].disableTargetTracking();
+        steppers[1].disableTargetTracking();
+        steppers[2].disableTargetTracking();
+        steppers[3].disableTargetTracking();
+        steppers[4].disableTargetTracking();
+        steppers[5].disableTargetTracking();
+
         // Grab Encoder Objects
         encoders[0] = &encoder1;
         encoders[1] = &encoder2;
@@ -144,7 +152,7 @@ public:
     void calibrate()
     {
         setLimitMode(0); // Run at Constant Speed
-        // SET CAL DIRECTION
+        // TODO:  SET CAL DIRECTION
         axis[0].setTargetSpeed(CALIB_SPEED);
         axis[1].setTargetSpeed(CALIB_SPEED);
         axis[2].setTargetSpeed(-CALIB_SPEED);
@@ -197,18 +205,6 @@ public:
 
     void driveLimits(bool MOVE_J1, bool MOVE_J2, bool MOVE_J3, bool MOVE_J4, bool MOVE_J5, bool MOVE_J6)
     {
-        // bool is_active[ROBOT_nDOFs] = {} disableTargetTracking();
-        // while ()
-        // {
-        //     for (int i = 0; i < ROBOT_nDOFs; i++)
-        //     {
-        //         if () // Not At switch
-
-        //             axis[i].run();
-        //     }
-        // }
-
-        // enableTargetTracking();
     }
 
     unsigned int getMillis() { return millis(); };
@@ -218,7 +214,7 @@ public:
         for (int i = 0; i < 6; i++)
         {
             float encoder_steps = (encoders[i]->read() / enc_mult[i]);
-            *(axis_positions + i) = (encoder_steps / step_deg[i]);
+            *(axis_positions + i) = (encoder_steps / step_deg[i]) + zero_offsets[i]];
         }
     };
 
