@@ -26,12 +26,12 @@ const int Output40 = 40;
 const int Output41 = 41;
 
 AR4 robot;
-// IkController controller;
+IkController controller;
 
 void printRobotStatus()
 {
   robot.run();
-  // controller.SolveFowardKinematic();
+  controller.SolveFowardKinematic();
   String status;
   status += "A" + String(robot.axis[0].currentPosition(), 3);
   status += "B" + String(robot.axis[1].currentPosition(), 3);
@@ -39,12 +39,12 @@ void printRobotStatus()
   status += "D" + String(robot.axis[3].currentPosition(), 3);
   status += "E" + String(robot.axis[4].currentPosition(), 3);
   status += "F" + String(robot.axis[5].currentPosition(), 3);
-  // status += "G" + String(controller.xyzuvw_Out[0], 3);
-  // status += "H" + String(controller.xyzuvw_Out[1], 3);
-  // status += "I" + String(controller.xyzuvw_Out[2], 3);
-  // status += "J" + String(controller.xyzuvw_Out[3], 3);
-  // status += "K" + String(controller.xyzuvw_Out[4], 3);
-  // status += "L" + String(controller.xyzuvw_Out[5], 3);
+  status += "G" + String(controller.xyzuvw_Out[0], 3);
+  status += "H" + String(controller.xyzuvw_Out[1], 3);
+  status += "I" + String(controller.xyzuvw_Out[2], 3);
+  status += "J" + String(controller.xyzuvw_Out[3], 3);
+  status += "K" + String(controller.xyzuvw_Out[4], 3);
+  status += "L" + String(controller.xyzuvw_Out[5], 3);
   status += "M" + speedViolation;
   status += "N" + debug;
   status += "O" + flag;
@@ -71,15 +71,16 @@ void setup()
   pinMode(Output40, OUTPUT);
   pinMode(Output41, OUTPUT);
 
-  // controller.attach(robot, &robot.run);
-  // controller.setDHParams();//robot.DHParams);
+  controller.attach(robot, &robot.run);
+  controller.setDHParams(); // robot.DHParams);
 }
+// TODO: create generic command to read from serial
 
 void loop()
 {
   robot.run();
-//  robot.tool.run();
-//  robot.track.run();
+  //  robot.tool.run();
+  //  robot.track.run();
   while (Serial.available())
   {
     char recieved = Serial.read();
@@ -135,7 +136,7 @@ void loop()
         float ry = inData.substring(TFryStart + 1, TFrxStart).toFloat() * M_PI / 180;
         float rz = inData.substring(TFrxStart + 1).toFloat() * M_PI / 180;
 
-        //controller.setToolFrame(x, y, z, rx, ry, rz);
+        controller.setToolFrame(x, y, z, rx, ry, rz);
         delay(5);
         Serial.println("Done");
       }
@@ -268,7 +269,7 @@ void loop()
         JangValues[4] = (inData.substring(J1angStart + 1, J2angStart).toFloat());
         JangValues[5] = (inData.substring(J1angStart + 1, J2angStart).toFloat());
         // float TRstepValue = inData.substring(TRstepStart + 1).toFloat();
-        // TODO Check if set pose is valid for robot 
+        // TODO Check if set pose is valid for robot
         for (int i = 0; i < ROBOT_nDOFs; i++)
         {
           robot.zero_offsets[i] = robot.axis[i].currentPosition() - JangValues[i];
@@ -310,26 +311,23 @@ void loop()
         JcallOff[3] = inData.substring(J4calstart + 1, J5calstart).toFloat();
         JcallOff[4] = inData.substring(J5calstart + 1, J6calstart).toFloat();
         JcallOff[5] = inData.substring(J6calstart + 1).toFloat();
-      
-      for (int i = 0; i < ROBOT_nDOFs; i++) robot.calib_offsets[i] = JcallOff[i];
 
-      for (int i = 0; i < ROBOT_nDOFs; i++) robot.freeze_axis[i] = Jreq[i];
-      
-      robot.calibrate();
+        for (int i = 0; i < ROBOT_nDOFs; i++)
+          robot.calib_offsets[i] = JcallOff[i];
 
-      for (int i = 0; i < ROBOT_nDOFs; i++) robot.freeze_axis[i] = false;
+        for (int i = 0; i < ROBOT_nDOFs; i++)
+          robot.freeze_axis[i] = Jreq[i];
+
+        robot.calibrate();
+
+        for (int i = 0; i < ROBOT_nDOFs; i++)
+          robot.freeze_axis[i] = false;
       }
-      
-      //-----COMMAND ZERO TRACK-------------------------------------------------DONE
-      if (function == "ZT")
-      {
-        // robot.track.clearSteps();
-      }
-      
+
       //-----COMMAND HOME POSE--------------------------------------------------DONE
       if (function == "HM")
       {
-        double home_pose[6] = {0,0,0,0,0,0};
+        double home_pose[6] = {0, 0, 0, 0, 0, 0};
         robot.moveAllTo(home_pose);
         robot.runToPositions();
         delay(5);
@@ -337,8 +335,14 @@ void loop()
         inData = ""; // Clear recieved buffer
       }
       /* #endregion */
-      
+
       /* #region Old Commands */
+      //-----COMMAND ZERO TRACK-------------------------------------------------
+      //-----------------------------------------------------------------------
+      if (function == "ZT")
+      {
+        // robot.track.clearSteps();
+      }
       //-----COMMAND CALIBRATE TRACK-------------------------------------------
       //-----------------------------------------------------------------------
       if (function == "CT")
@@ -347,47 +351,46 @@ void loop()
         Serial.print("Done");
       }
 
+      //----- MOVE J IN JOINTS  -----------------------------------------------
+      //-----------------------------------------------------------------------
+      if (function == "RJ")
+      {
+        /// controller.move();
+        inData = ""; // Clear recieved buffer
+      }
       //----- LIVE CARTESIAN JOG  ---------------------------------------------
       //-----------------------------------------------------------------------
       if (function == "LC")
       {
-       /// controller.move();
+        /// controller.move();
         inData = ""; // Clear recieved buffer
       }
       //----- LIVE JOINT JOG  -------------------------------------------------
       //-----------------------------------------------------------------------
       if (function == "LJ")
       {
-       /// controller.move();
+        /// controller.move();
         inData = ""; // Clear recieved buffer
       }
       //----- LIVE TOOL JOG  --------------------------------------------------
       //-----------------------------------------------------------------------
       if (function == "LT")
       {
-       /// controller.move();
-        inData = ""; // Clear recieved buffer
-      }
-      //----- MOVE J IN JOINTS  -----------------------------------------------
-      //-----------------------------------------------------------------------
-      if (function == "RJ")
-      {
-       /// controller.move();
+        /// controller.move();
         inData = ""; // Clear recieved buffer
       }
       //----- Jog T ----------------------------------------------------------
       //----------------------------------------------------------------------
       if (function == "JT")
       {
-       /// controller.move();
+        /// controller.move();
         inData = ""; // Clear recieved buffer
       }
-     
       //----- MOVE J ----------------------------------------------------------
       //-----------------------------------------------------------------------
       if (function == "MJ")
       {
-       /// controller.move();
+        /// controller.move();
         delay(5);
         Serial.print("Done");
         inData = ""; // Clear recieved buffer
@@ -396,7 +399,7 @@ void loop()
       //-----------------------------------------------------------------------
       if (function == "MA")
       {
-       /// controller.move();
+        /// controller.move();
         delay(5);
         Serial.print("Done");
         inData = ""; // Clear recieved buffer
@@ -405,7 +408,7 @@ void loop()
       //----------------------------------------------------------------------
       if (function == "MC")
       {
-       /// controller.move();
+        /// controller.move();
         delay(5);
         Serial.print("Done");
         inData = ""; // Clear recieved buffer
@@ -414,7 +417,7 @@ void loop()
       //----------------------------------------------------------------------
       if (function == "ML")
       {
-       /// controller.move();
+        /// controller.move();
         delay(5);
         Serial.print("Done");
         inData = ""; // Clear recieved buffer

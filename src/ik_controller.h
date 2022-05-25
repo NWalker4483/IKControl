@@ -344,6 +344,406 @@ void xyzuvw_2_pose(const T xyzuvw[6], Matrix4x4 pose)
 
 /* #endregion */
 
+
+// /* #region FOWARD KINEMATICS*/
+// template <typename T>
+// void forward_kinematics_arm(const T *joints, Matrix4x4 pose)
+// {
+//     xyzwpr_2_pose(Robot_Kin_Base, pose);
+//     for (int i = 0; i < ROBOT_nDOFs; i++)
+//     {
+//         Matrix4x4 hi;
+//         float *dhm_i = Robot_Kin_DHM_Table + i * Table_Size;
+//         T ji_rad = joints[i] * Robot_Senses[i] * M_PI / 180.0;
+//         DHM_2_pose(dhm_i[0], dhm_i[1], dhm_i[2] + ji_rad, dhm_i[3], hi);
+//         Matrix_Multiply_Cumul(pose, hi);
+//     }
+//     Matrix4x4 tool_pose;
+//     xyzwpr_2_pose(Robot_Kin_Tool, tool_pose);
+//     Matrix_Multiply_Cumul(pose, tool_pose);
+// }
+
+// template <typename T>
+// void forward_kinematics_robot_xyzuvw(const T joints[ROBOT_nDOFs], T target_xyzuvw[6])
+// {
+//     Matrix4x4 pose;
+//     forward_kinematics_robot(joints, pose); // send the joints values and return the pose matrix as an argument
+//     pose_2_xyzuvw(pose, target_xyzuvw);     // send the pose matrix and return the xyzuvw values in an array as an argument
+// }
+
+// // Calculate de foward kinematic of the robot without the tool
+// template <typename T>
+// void forward_kinematics_robot(const T joints[ROBOT_nDOFs], Matrix4x4 target)
+// {
+//     Matrix4x4 invBaseFrame;
+//     Matrix4x4 pose_arm;
+//     Matrix_Inv(invBaseFrame, Robot_BaseFrame); // invRobot_Tool could be precalculated, the tool does not change so often
+//     forward_kinematics_arm(joints, pose_arm);
+//     Matrix_Multiply(target, invBaseFrame, pose_arm);
+//     Matrix_Multiply_Cumul(target, Robot_ToolFrame);
+// }
+// /* #endregion */
+
+/* #region REVERSE KINEMATICS*/
+
+
+// template <typename T>
+// int inverse_kinematics_robot(const Matrix4x4 target, T joints[ROBOT_nDOFs], const T *joints_estimate)
+// {
+//     Matrix4x4 invToolFrame;
+//     Matrix4x4 pose_arm;
+//     int nsol;
+//     Matrix_Inv(invToolFrame, Robot_ToolFrame); // invRobot_Tool could be precalculated, the tool does not change so often
+//     Matrix_Multiply(pose_arm, Robot_BaseFrame, target);
+//     Matrix_Multiply_Cumul(pose_arm, invToolFrame);
+//     if (joints_estimate != nullptr)
+//     {
+//         inverse_kinematics_raw(pose_arm, Robot_Data, joints_estimate, joints, &nsol);
+//     }
+//     else
+//     {
+//         // Warning! This is dangerous if joints does not have a valid/reasonable result
+//         T joints_approx[6];
+//         memcpy(joints_approx, joints, ROBOT_nDOFs * sizeof(T));
+//         inverse_kinematics_raw(pose_arm, Robot_Data, joints_approx, joints, &nsol);
+//     }
+//     if (nsol == 0)
+//     {
+//         return 0;
+//     }
+//     return 1;
+// }
+
+// template <typename T>
+// int inverse_kinematics_robot_xyzuvw(const T target_xyzuvw1[6], T joints[ROBOT_nDOFs], const T *joints_estimate)
+// {
+//     Matrix4x4 pose;
+//     xyzuvw_2_pose(target_xyzuvw1, pose);
+//     return inverse_kinematics_robot(pose, joints, joints_estimate);
+// }
+
+// template <typename T>
+// void inverse_kinematics_raw(const T pose[16], const tRobot DK, const T joints_approx_in[6], T joints[6], int *nsol)
+// {
+//     int i0;
+//     T base[16];
+//     T joints_approx[6];
+//     T tool[16];
+//     int i;
+//     T Hout[16];
+//     T b_Hout[9];
+//     T dv0[4];
+//     bool guard1 = false;
+//     T make_sqrt;
+//     T P04[4];
+//     T q1;
+//     int i1;
+//     T c_Hout[16];
+//     T k2, k1, ai, B, C, s31, c31, q13_idx_2, bb_div_cc, q13_idx_0;
+//     for (i0 = 0; i0 < 6; i0++)
+//     {
+//         joints_approx[i0] = DK[60 + i0] * joints_approx_in[i0];
+//     }
+
+//     xyzwpr_2_pose(*(T(*)[6]) & DK[36], base);
+//     xyzwpr_2_pose(*(T(*)[6]) & DK[42], tool);
+//     for (i0 = 0; i0 < 4; i0++)
+//     {
+//         i = i0 << 2;
+//         Hout[i] = base[i0];
+//         Hout[1 + i] = base[i0 + 4];
+//         Hout[2 + i] = base[i0 + 8];
+//         Hout[3 + i] = base[i0 + 12];
+//     }
+
+//     for (i0 = 0; i0 < 3; i0++)
+//     {
+//         i = i0 << 2;
+//         Hout[3 + i] = 0.0;
+//         b_Hout[3 * i0] = -Hout[i];
+//         b_Hout[1 + 3 * i0] = -Hout[1 + i];
+//         b_Hout[2 + 3 * i0] = -Hout[2 + i];
+//     }
+
+//     for (i0 = 0; i0 < 3; i0++)
+//     {
+//         Hout[12 + i0] = (b_Hout[i0] * base[12] + b_Hout[i0 + 3] * base[13]) + b_Hout[i0 + 6] * base[14];
+//     }
+
+//     for (i0 = 0; i0 < 4; i0++)
+//     {
+//         i = i0 << 2;
+//         base[i] = tool[i0];
+//         base[1 + i] = tool[i0 + 4];
+//         base[2 + i] = tool[i0 + 8];
+//         base[3 + i] = tool[i0 + 12];
+//     }
+
+//     for (i0 = 0; i0 < 3; i0++)
+//     {
+//         i = i0 << 2;
+//         base[3 + i] = 0.0;
+//         b_Hout[3 * i0] = -base[i];
+//         b_Hout[1 + 3 * i0] = -base[1 + i];
+//         b_Hout[2 + 3 * i0] = -base[2 + i];
+//     }
+
+//     for (i0 = 0; i0 < 3; i0++)
+//     {
+//         base[12 + i0] = (b_Hout[i0] * tool[12] + b_Hout[i0 + 3] * tool[13]) + b_Hout[i0 + 6] * tool[14];
+//     }
+
+//     dv0[0] = 0.0;
+//     dv0[1] = 0.0;
+//     dv0[2] = -DK[33];
+//     dv0[3] = 1.0;
+//     for (i0 = 0; i0 < 4; i0++)
+//     {
+//         for (i = 0; i < 4; i++)
+//         {
+//             i1 = i << 2;
+//             c_Hout[i0 + i1] = ((Hout[i0] * pose[i1] + Hout[i0 + 4] * pose[1 + i1]) + Hout[i0 + 8] * pose[2 + i1]) + Hout[i0 + 12] * pose[3 + i1];
+//         }
+
+//         P04[i0] = 0.0;
+//         for (i = 0; i < 4; i++)
+//         {
+//             i1 = i << 2;
+//             make_sqrt = ((c_Hout[i0] * base[i1] + c_Hout[i0 + 4] * base[1 + i1]) + c_Hout[i0 + 8] * base[2 + i1]) + c_Hout[i0 + 12] * base[3 + i1];
+//             tool[i0 + i1] = make_sqrt;
+//             P04[i0] += make_sqrt * dv0[i];
+//         }
+//     }
+
+//     guard1 = false;
+//     if (DK[9] == 0.0)
+//     {
+//         q1 = atan2(P04[1], P04[0]);
+//         guard1 = true;
+//     }
+//     else
+//     {
+//         make_sqrt = (P04[0] * P04[0] + P04[1] * P04[1]) - DK[9] * DK[9];
+//         if (make_sqrt < 0.0)
+//         {
+//             for (i = 0; i < 6; i++)
+//             {
+//                 joints[i] = 0.0;
+//             }
+
+//             *nsol = 0;
+//         }
+//         else
+//         {
+//             q1 = atan2(P04[1], P04[0]) - atan2(DK[9], sqrt(make_sqrt));
+//             guard1 = true;
+//         }
+//     }
+
+//     if (guard1)
+//     {
+//         k2 = P04[2] - DK[3];
+//         k1 = (cos(q1) * P04[0] + sin(q1) * P04[1]) - DK[7];
+//         ai = (((k1 * k1 + k2 * k2) - DK[13] * DK[13]) - DK[21] * DK[21]) - DK[19] * DK[19];
+//         B = 2.0 * DK[21] * DK[13];
+//         C = 2.0 * DK[19] * DK[13];
+//         s31 = 0.0;
+//         c31 = 0.0;
+//         if (C == 0.0)
+//         {
+//             s31 = -ai / B;
+//             make_sqrt = 1.0 - s31 * s31;
+//             if (make_sqrt >= 0.0)
+//             {
+//                 c31 = sqrt(make_sqrt);
+//             }
+//         }
+//         else
+//         {
+//             q13_idx_2 = C * C;
+//             bb_div_cc = B * B / q13_idx_2;
+//             make_sqrt = 2.0 * ai * B / q13_idx_2;
+//             make_sqrt = make_sqrt * make_sqrt - 4.0 * ((1.0 + bb_div_cc) * (ai * ai / q13_idx_2 - 1.0));
+//             if (make_sqrt >= 0.0)
+//             {
+//                 s31 = (-2.0 * ai * B / q13_idx_2 + sqrt(make_sqrt)) / (2.0 * (1.0 + bb_div_cc));
+//                 c31 = (ai + B * s31) / C;
+//             }
+//         }
+
+//         if ((make_sqrt >= 0.0) && (abs(s31) <= 1.0))
+//         {
+//             B = atan2(s31, c31);
+//             make_sqrt = cos(B);
+//             ai = sin(B);
+//             C = (DK[13] - DK[21] * ai) + DK[19] * make_sqrt;
+//             make_sqrt = DK[21] * make_sqrt + DK[19] * ai;
+//             q13_idx_0 = q1 + -DK[2];
+//             k2 = atan2(C * k1 - make_sqrt * k2, C * k2 + make_sqrt * k1) + (-DK[8] - M_PI / 2);
+//             q13_idx_2 = B + -DK[14];
+//             bb_div_cc = joints_approx[3] * M_PI / 180.0 - (-DK[20]);
+//             q1 = q13_idx_0 + DK[2];
+//             B = k2 + DK[8];
+//             C = q13_idx_2 + DK[14];
+//             make_sqrt = B + C;
+//             s31 = cos(make_sqrt);
+//             c31 = cos(q1);
+//             Hout[0] = s31 * c31;
+//             ai = sin(q1);
+//             Hout[4] = s31 * ai;
+//             make_sqrt = sin(make_sqrt);
+//             Hout[8] = -make_sqrt;
+//             Hout[12] = (DK[3] * make_sqrt - DK[7] * s31) - DK[13] * cos(C);
+//             Hout[1] = -sin(B + C) * c31;
+//             Hout[5] = -sin(B + C) * ai;
+//             Hout[9] = -s31;
+//             Hout[13] = (DK[3] * s31 + DK[7] * make_sqrt) + DK[13] * sin(C);
+//             Hout[2] = -ai;
+//             Hout[6] = c31;
+//             Hout[10] = 0.0;
+//             Hout[14] = 0.0;
+//             Hout[3] = 0.0;
+//             Hout[7] = 0.0;
+//             Hout[11] = 0.0;
+//             Hout[15] = 1.0;
+//             for (i0 = 0; i0 < 4; i0++)
+//             {
+//                 for (i = 0; i < 4; i++)
+//                 {
+//                     i1 = i << 2;
+//                     base[i0 + i1] = ((Hout[i0] * tool[i1] + Hout[i0 + 4] * tool[1 + i1]) + Hout[i0 + 8] * tool[2 + i1]) + Hout[i0 + 12] * tool[3 + i1];
+//                 }
+//             }
+
+//             make_sqrt = 1.0 - base[9] * base[9];
+//             if (make_sqrt <= 0.0)
+//             {
+//                 make_sqrt = 0.0;
+//             }
+//             else
+//             {
+//                 make_sqrt = sqrt(make_sqrt);
+//             }
+
+//             if (make_sqrt < 1.0E-6)
+//             {
+//                 C = atan2(make_sqrt, base[9]);
+//                 make_sqrt = sin(bb_div_cc);
+//                 ai = cos(bb_div_cc);
+//                 make_sqrt = atan2(make_sqrt * base[0] + ai * base[2], make_sqrt * base[2] - ai * base[0]);
+//             }
+//             else if (joints_approx[4] >= 0.0)
+//             {
+//                 bb_div_cc = atan2(base[10] / make_sqrt, -base[8] / make_sqrt);
+//                 C = atan2(make_sqrt, base[9]);
+//                 make_sqrt = sin(C);
+//                 make_sqrt = atan2(base[5] / make_sqrt, -base[1] / make_sqrt);
+//             }
+//             else
+//             {
+//                 bb_div_cc = atan2(-base[10] / make_sqrt, base[8] / make_sqrt);
+//                 C = atan2(-make_sqrt, base[9]);
+//                 make_sqrt = sin(C);
+//                 make_sqrt = atan2(base[5] / make_sqrt, -base[1] / make_sqrt);
+//             }
+
+//             joints[0] = q13_idx_0;
+//             joints[3] = bb_div_cc + -DK[20];
+//             joints[1] = k2;
+//             joints[4] = C + -DK[26];
+//             joints[2] = q13_idx_2;
+//             joints[5] = make_sqrt + (-DK[32] + M_PI);
+//             make_sqrt = joints[5];
+//             if (joints[5] > 3.1415926535897931)
+//             {
+//                 make_sqrt = joints[5] - M_PI * 2;
+//             }
+//             else
+//             {
+//                 if (joints[5] <= -M_PI)
+//                 {
+//                     make_sqrt = joints[5] + M_PI * 2;
+//                 }
+//             }
+
+//             joints[5] = make_sqrt;
+//             for (i0 = 0; i0 < 6; i0++)
+//             {
+//                 joints[i0] = DK[60 + i0] * (joints[i0] * 180.0 / M_PI);
+//             }
+
+//             *nsol = 1.0;
+//         }
+//         else
+//         {
+//             for (i = 0; i < 6; i++)
+//             {
+//                 joints[i] = 0.0;
+//             }
+
+//             *nsol = 0;
+//         }
+//     }
+// }
+ /* #endregion */
+
+/* #region ROBOT DATA VARS*/
+/// Custom robot base (user frame)
+Matrix4x4 Robot_BaseFrame = {1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};
+
+/// Custom robot tool (tool frame, end of arm tool or TCP)
+Matrix4x4 Robot_ToolFrame = {1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};
+
+/// Robot parameters
+/// All robot data is held in a large array
+tRobot Robot_Data = {0};
+
+// These global variable are also pointers, allowing to put the variables inside the Robot_Data
+/// DHM table
+float *Robot_Kin_DHM_Table = Robot_Data + 0 * Table_Size;
+
+/// xyzwpr of the base
+float *Robot_Kin_Base = Robot_Data + 6 * Table_Size;
+
+/// xyzwpr of the tool
+float *Robot_Kin_Tool = Robot_Data + 7 * Table_Size;
+
+/// Robot lower limits
+float *Robot_JointLimits_Upper = Robot_Data + 8 * Table_Size;
+
+/// Robot upper limits
+float *Robot_JointLimits_Lower = Robot_Data + 9 * Table_Size;
+
+/// Robot axis senses
+float *Robot_Senses = Robot_Data + 10 * Table_Size;
+
+// A value mappings
+float *Robot_Kin_DHM_L1 = Robot_Kin_DHM_Table + 0 * Table_Size;
+float *Robot_Kin_DHM_L2 = Robot_Kin_DHM_Table + 1 * Table_Size;
+float *Robot_Kin_DHM_L3 = Robot_Kin_DHM_Table + 2 * Table_Size;
+float *Robot_Kin_DHM_L4 = Robot_Kin_DHM_Table + 3 * Table_Size;
+float *Robot_Kin_DHM_L5 = Robot_Kin_DHM_Table + 4 * Table_Size;
+float *Robot_Kin_DHM_L6 = Robot_Kin_DHM_Table + 5 * Table_Size;
+
+float &Robot_Kin_DHM_A2(Robot_Kin_DHM_Table[1 * Table_Size + 1]);
+float &Robot_Kin_DHM_A3(Robot_Kin_DHM_Table[2 * Table_Size + 1]);
+float &Robot_Kin_DHM_A4(Robot_Kin_DHM_Table[3 * Table_Size + 1]);
+
+// D value mappings
+float &Robot_Kin_DHM_D1(Robot_Kin_DHM_Table[0 * Table_Size + 3]);
+float &Robot_Kin_DHM_D2(Robot_Kin_DHM_Table[1 * Table_Size + 3]);
+float &Robot_Kin_DHM_D4(Robot_Kin_DHM_Table[3 * Table_Size + 3]);
+float &Robot_Kin_DHM_D6(Robot_Kin_DHM_Table[5 * Table_Size + 3]);
+
+// Theta value mappings (mastering)
+float &Robot_Kin_DHM_Theta1(Robot_Kin_DHM_Table[0 * Table_Size + 2]);
+float &Robot_Kin_DHM_Theta2(Robot_Kin_DHM_Table[1 * Table_Size + 2]);
+float &Robot_Kin_DHM_Theta3(Robot_Kin_DHM_Table[2 * Table_Size + 2]);
+float &Robot_Kin_DHM_Theta4(Robot_Kin_DHM_Table[3 * Table_Size + 2]);
+float &Robot_Kin_DHM_Theta5(Robot_Kin_DHM_Table[4 * Table_Size + 2]);
+float &Robot_Kin_DHM_Theta6(Robot_Kin_DHM_Table[5 * Table_Size + 2]);
+/* #endregion */
+
 class IkController
 {
 public:
@@ -351,7 +751,7 @@ public:
     {
     }
 
-    void attach(MultiAxis<6> &bot, void (*run_method)())
+    void attach(MultiAxis<6> &bot, bool (MultiAxis<6>::*run_method)())
     {
     }
 
@@ -361,12 +761,12 @@ public:
 
     void setToolFrame(float x, float y, float z, float rx, float ry, float rz)
     {
-        Robot_Kin_Tool[0] = x;
-        Robot_Kin_Tool[1] = y;
-        Robot_Kin_Tool[2] = z;
-        Robot_Kin_Tool[3] = rx;
-        Robot_Kin_Tool[4] = ry;
-        Robot_Kin_Tool[5] = rz;
+        // Robot_Kin_Tool[0] = x;
+        // Robot_Kin_Tool[1] = y;
+        // Robot_Kin_Tool[2] = z;
+        // Robot_Kin_Tool[3] = rx;
+        // Robot_Kin_Tool[4] = ry;
+        // Robot_Kin_Tool[5] = rz;
     }
 
     void getPoseOutput(){};
@@ -631,13 +1031,10 @@ public:
         // checkEncoders();
         // sendRobotPos();
     }
-   
-    void clearFaults()
-    {
-    }
 
     void SolveInverseKinematic()
     {
+        /*
         float joints[ROBOT_nDOFs];
         float target[6];
 
@@ -708,470 +1105,76 @@ public:
         {
             JangleOut[i] = SolutionMatrix[i][solVal];
         }
+        */
     }
 
     void SolveFowardKinematic()
-    {
-        robot_data_grab();
+    { /*
+         robot_data_grab();
 
-        float target_xyzuvw[6];
-        float joints[ROBOT_nDOFs];
+         float target_xyzuvw[6];
+         float joints[ROBOT_nDOFs];
 
-        for (int i = 0; i < ROBOT_nDOFs; i++)
-        {
-            joints[i] = JangleIn[i];
-        }
+         for (int i = 0; i < ROBOT_nDOFs; i++)
+         {
+             joints[i] = JangleIn[i];
+         }
 
-        forward_kinematics_robot_xyzuvw(joints, target_xyzuvw);
+         forward_kinematics_robot_xyzuvw(joints, target_xyzuvw);
 
-        xyzuvw_Out[0] = target_xyzuvw[0];
-        xyzuvw_Out[1] = target_xyzuvw[1];
-        xyzuvw_Out[2] = target_xyzuvw[2];
-        xyzuvw_Out[3] = target_xyzuvw[3] / M_PI * 180;
-        xyzuvw_Out[4] = target_xyzuvw[4] / M_PI * 180;
-        xyzuvw_Out[5] = target_xyzuvw[5] / M_PI * 180;
+         xyzuvw_Out[0] = target_xyzuvw[0];
+         xyzuvw_Out[1] = target_xyzuvw[1];
+         xyzuvw_Out[2] = target_xyzuvw[2];
+         xyzuvw_Out[3] = target_xyzuvw[3] / M_PI * 180;
+         xyzuvw_Out[4] = target_xyzuvw[4] / M_PI * 180;
+         xyzuvw_Out[5] = target_xyzuvw[5] / M_PI * 180;
+
+ */
     }
 
-    // TODO: Access through getters
+    // TODO: Access through getters/setters
     // declare in out vars
     float xyzuvw_Out[6];
     float xyzuvw_In[6];
+
 private:
-    /* #region FOWARD KINEMATICS*/
-    template <typename T>
-    void forward_kinematics_arm(const T *joints, Matrix4x4 pose)
-    {
-        xyzwpr_2_pose(Robot_Kin_Base, pose);
-        for (int i = 0; i < ROBOT_nDOFs; i++)
-        {
-            Matrix4x4 hi;
-            float *dhm_i = Robot_Kin_DHM_Table + i * Table_Size;
-            T ji_rad = joints[i] * Robot_Senses[i] * M_PI / 180.0;
-            DHM_2_pose(dhm_i[0], dhm_i[1], dhm_i[2] + ji_rad, dhm_i[3], hi);
-            Matrix_Multiply_Cumul(pose, hi);
-        }
-        Matrix4x4 tool_pose;
-        xyzwpr_2_pose(Robot_Kin_Tool, tool_pose);
-        Matrix_Multiply_Cumul(pose, tool_pose);
-    }
+    // void robot_data_reset()
+    // {
+    //     // Reset user base and tool frames
+    //     Matrix_Eye(Robot_BaseFrame);
+    //     Matrix_Eye(Robot_ToolFrame);
 
-    template <typename T>
-    void forward_kinematics_robot_xyzuvw(const T joints[ROBOT_nDOFs], T target_xyzuvw[6])
-    {
-        Matrix4x4 pose;
-        forward_kinematics_robot(joints, pose); // send the joints values and return the pose matrix as an argument
-        pose_2_xyzuvw(pose, target_xyzuvw);     // send the pose matrix and return the xyzuvw values in an array as an argument
-    }
+    //     // Reset internal base frame and tool frames
+    //     for (int i = 0; i < 6; i++)
+    //     {
+    //         Robot_Kin_Base[i] = 0.0;
+    //     }
 
-    // Calculate de foward kinematic of the robot without the tool
-    template <typename T>
-    void forward_kinematics_robot(const T joints[ROBOT_nDOFs], Matrix4x4 target)
-    {
-        Matrix4x4 invBaseFrame;
-        Matrix4x4 pose_arm;
-        Matrix_Inv(invBaseFrame, Robot_BaseFrame); // invRobot_Tool could be precalculated, the tool does not change so often
-        forward_kinematics_arm(joints, pose_arm);
-        Matrix_Multiply(target, invBaseFrame, pose_arm);
-        Matrix_Multiply_Cumul(target, Robot_ToolFrame);
-    }
-    /* #endregion */
+    //     // Reset joint senses and joint limits
+    //     for (int i = 0; i < ROBOT_nDOFs; i++)
+    //     {
+    //         Robot_Senses[i] = +1.0;
+    //     }
+    // }
 
-    /* #region REVERSE KINEMATICS*/
-    template <typename T>
-    int inverse_kinematics_robot(const Matrix4x4 target, T joints[ROBOT_nDOFs], const T *joints_estimate)
-    {
-        Matrix4x4 invToolFrame;
-        Matrix4x4 pose_arm;
-        int nsol;
-        Matrix_Inv(invToolFrame, Robot_ToolFrame); // invRobot_Tool could be precalculated, the tool does not change so often
-        Matrix_Multiply(pose_arm, Robot_BaseFrame, target);
-        Matrix_Multiply_Cumul(pose_arm, invToolFrame);
-        if (joints_estimate != nullptr)
-        {
-            inverse_kinematics_raw(pose_arm, Robot_Data, joints_estimate, joints, &nsol);
-        }
-        else
-        {
-            // Warning! This is dangerous if joints does not have a valid/reasonable result
-            T joints_approx[6];
-            memcpy(joints_approx, joints, ROBOT_nDOFs * sizeof(T));
-            inverse_kinematics_raw(pose_arm, Robot_Data, joints_approx, joints, &nsol);
-        }
-        if (nsol == 0)
-        {
-            return 0;
-        }
-        return 1;
-    }
+    // template <typename T>
+    // bool robot_joints_valid(const T joints[ROBOT_nDOFs])
+    // {
+    //     for (int i = 0; i < ROBOT_nDOFs; i++)
+    //     {
+    //         if (joints[i] < Robot_JointLimits_Lower[i] || joints[i] > Robot_JointLimits_Upper[i])
+    //         {
+    //             return false;
+    //         }
+    //     }
+    //     return true;
+    // }
 
-    template <typename T>
-    int inverse_kinematics_robot_xyzuvw(const T target_xyzuvw1[6], T joints[ROBOT_nDOFs], const T *joints_estimate)
-    {
-        Matrix4x4 pose;
-        xyzuvw_2_pose(target_xyzuvw1, pose);
-        return inverse_kinematics_robot(pose, joints, joints_estimate);
-    }
-
-    template <typename T>
-    void inverse_kinematics_raw(const T pose[16], const tRobot DK, const T joints_approx_in[6], T joints[6], int *nsol)
-    {
-        int i0;
-        T base[16];
-        T joints_approx[6];
-        T tool[16];
-        int i;
-        T Hout[16];
-        T b_Hout[9];
-        T dv0[4];
-        bool guard1 = false;
-        T make_sqrt;
-        T P04[4];
-        T q1;
-        int i1;
-        T c_Hout[16];
-        T k2, k1, ai, B, C, s31, c31, q13_idx_2, bb_div_cc, q13_idx_0;
-        for (i0 = 0; i0 < 6; i0++)
-        {
-            joints_approx[i0] = DK[60 + i0] * joints_approx_in[i0];
-        }
-
-        xyzwpr_2_pose(*(T(*)[6]) & DK[36], base);
-        xyzwpr_2_pose(*(T(*)[6]) & DK[42], tool);
-        for (i0 = 0; i0 < 4; i0++)
-        {
-            i = i0 << 2;
-            Hout[i] = base[i0];
-            Hout[1 + i] = base[i0 + 4];
-            Hout[2 + i] = base[i0 + 8];
-            Hout[3 + i] = base[i0 + 12];
-        }
-
-        for (i0 = 0; i0 < 3; i0++)
-        {
-            i = i0 << 2;
-            Hout[3 + i] = 0.0;
-            b_Hout[3 * i0] = -Hout[i];
-            b_Hout[1 + 3 * i0] = -Hout[1 + i];
-            b_Hout[2 + 3 * i0] = -Hout[2 + i];
-        }
-
-        for (i0 = 0; i0 < 3; i0++)
-        {
-            Hout[12 + i0] = (b_Hout[i0] * base[12] + b_Hout[i0 + 3] * base[13]) + b_Hout[i0 + 6] * base[14];
-        }
-
-        for (i0 = 0; i0 < 4; i0++)
-        {
-            i = i0 << 2;
-            base[i] = tool[i0];
-            base[1 + i] = tool[i0 + 4];
-            base[2 + i] = tool[i0 + 8];
-            base[3 + i] = tool[i0 + 12];
-        }
-
-        for (i0 = 0; i0 < 3; i0++)
-        {
-            i = i0 << 2;
-            base[3 + i] = 0.0;
-            b_Hout[3 * i0] = -base[i];
-            b_Hout[1 + 3 * i0] = -base[1 + i];
-            b_Hout[2 + 3 * i0] = -base[2 + i];
-        }
-
-        for (i0 = 0; i0 < 3; i0++)
-        {
-            base[12 + i0] = (b_Hout[i0] * tool[12] + b_Hout[i0 + 3] * tool[13]) + b_Hout[i0 + 6] * tool[14];
-        }
-
-        dv0[0] = 0.0;
-        dv0[1] = 0.0;
-        dv0[2] = -DK[33];
-        dv0[3] = 1.0;
-        for (i0 = 0; i0 < 4; i0++)
-        {
-            for (i = 0; i < 4; i++)
-            {
-                i1 = i << 2;
-                c_Hout[i0 + i1] = ((Hout[i0] * pose[i1] + Hout[i0 + 4] * pose[1 + i1]) + Hout[i0 + 8] * pose[2 + i1]) + Hout[i0 + 12] * pose[3 + i1];
-            }
-
-            P04[i0] = 0.0;
-            for (i = 0; i < 4; i++)
-            {
-                i1 = i << 2;
-                make_sqrt = ((c_Hout[i0] * base[i1] + c_Hout[i0 + 4] * base[1 + i1]) + c_Hout[i0 + 8] * base[2 + i1]) + c_Hout[i0 + 12] * base[3 + i1];
-                tool[i0 + i1] = make_sqrt;
-                P04[i0] += make_sqrt * dv0[i];
-            }
-        }
-
-        guard1 = false;
-        if (DK[9] == 0.0)
-        {
-            q1 = atan2(P04[1], P04[0]);
-            guard1 = true;
-        }
-        else
-        {
-            make_sqrt = (P04[0] * P04[0] + P04[1] * P04[1]) - DK[9] * DK[9];
-            if (make_sqrt < 0.0)
-            {
-                for (i = 0; i < 6; i++)
-                {
-                    joints[i] = 0.0;
-                }
-
-                *nsol = 0;
-            }
-            else
-            {
-                q1 = atan2(P04[1], P04[0]) - atan2(DK[9], sqrt(make_sqrt));
-                guard1 = true;
-            }
-        }
-
-        if (guard1)
-        {
-            k2 = P04[2] - DK[3];
-            k1 = (cos(q1) * P04[0] + sin(q1) * P04[1]) - DK[7];
-            ai = (((k1 * k1 + k2 * k2) - DK[13] * DK[13]) - DK[21] * DK[21]) - DK[19] * DK[19];
-            B = 2.0 * DK[21] * DK[13];
-            C = 2.0 * DK[19] * DK[13];
-            s31 = 0.0;
-            c31 = 0.0;
-            if (C == 0.0)
-            {
-                s31 = -ai / B;
-                make_sqrt = 1.0 - s31 * s31;
-                if (make_sqrt >= 0.0)
-                {
-                    c31 = sqrt(make_sqrt);
-                }
-            }
-            else
-            {
-                q13_idx_2 = C * C;
-                bb_div_cc = B * B / q13_idx_2;
-                make_sqrt = 2.0 * ai * B / q13_idx_2;
-                make_sqrt = make_sqrt * make_sqrt - 4.0 * ((1.0 + bb_div_cc) * (ai * ai / q13_idx_2 - 1.0));
-                if (make_sqrt >= 0.0)
-                {
-                    s31 = (-2.0 * ai * B / q13_idx_2 + sqrt(make_sqrt)) / (2.0 * (1.0 + bb_div_cc));
-                    c31 = (ai + B * s31) / C;
-                }
-            }
-
-            if ((make_sqrt >= 0.0) && (abs(s31) <= 1.0))
-            {
-                B = atan2(s31, c31);
-                make_sqrt = cos(B);
-                ai = sin(B);
-                C = (DK[13] - DK[21] * ai) + DK[19] * make_sqrt;
-                make_sqrt = DK[21] * make_sqrt + DK[19] * ai;
-                q13_idx_0 = q1 + -DK[2];
-                k2 = atan2(C * k1 - make_sqrt * k2, C * k2 + make_sqrt * k1) + (-DK[8] - M_PI / 2);
-                q13_idx_2 = B + -DK[14];
-                bb_div_cc = joints_approx[3] * M_PI / 180.0 - (-DK[20]);
-                q1 = q13_idx_0 + DK[2];
-                B = k2 + DK[8];
-                C = q13_idx_2 + DK[14];
-                make_sqrt = B + C;
-                s31 = cos(make_sqrt);
-                c31 = cos(q1);
-                Hout[0] = s31 * c31;
-                ai = sin(q1);
-                Hout[4] = s31 * ai;
-                make_sqrt = sin(make_sqrt);
-                Hout[8] = -make_sqrt;
-                Hout[12] = (DK[3] * make_sqrt - DK[7] * s31) - DK[13] * cos(C);
-                Hout[1] = -sin(B + C) * c31;
-                Hout[5] = -sin(B + C) * ai;
-                Hout[9] = -s31;
-                Hout[13] = (DK[3] * s31 + DK[7] * make_sqrt) + DK[13] * sin(C);
-                Hout[2] = -ai;
-                Hout[6] = c31;
-                Hout[10] = 0.0;
-                Hout[14] = 0.0;
-                Hout[3] = 0.0;
-                Hout[7] = 0.0;
-                Hout[11] = 0.0;
-                Hout[15] = 1.0;
-                for (i0 = 0; i0 < 4; i0++)
-                {
-                    for (i = 0; i < 4; i++)
-                    {
-                        i1 = i << 2;
-                        base[i0 + i1] = ((Hout[i0] * tool[i1] + Hout[i0 + 4] * tool[1 + i1]) + Hout[i0 + 8] * tool[2 + i1]) + Hout[i0 + 12] * tool[3 + i1];
-                    }
-                }
-
-                make_sqrt = 1.0 - base[9] * base[9];
-                if (make_sqrt <= 0.0)
-                {
-                    make_sqrt = 0.0;
-                }
-                else
-                {
-                    make_sqrt = sqrt(make_sqrt);
-                }
-
-                if (make_sqrt < 1.0E-6)
-                {
-                    C = atan2(make_sqrt, base[9]);
-                    make_sqrt = sin(bb_div_cc);
-                    ai = cos(bb_div_cc);
-                    make_sqrt = atan2(make_sqrt * base[0] + ai * base[2], make_sqrt * base[2] - ai * base[0]);
-                }
-                else if (joints_approx[4] >= 0.0)
-                {
-                    bb_div_cc = atan2(base[10] / make_sqrt, -base[8] / make_sqrt);
-                    C = atan2(make_sqrt, base[9]);
-                    make_sqrt = sin(C);
-                    make_sqrt = atan2(base[5] / make_sqrt, -base[1] / make_sqrt);
-                }
-                else
-                {
-                    bb_div_cc = atan2(-base[10] / make_sqrt, base[8] / make_sqrt);
-                    C = atan2(-make_sqrt, base[9]);
-                    make_sqrt = sin(C);
-                    make_sqrt = atan2(base[5] / make_sqrt, -base[1] / make_sqrt);
-                }
-
-                joints[0] = q13_idx_0;
-                joints[3] = bb_div_cc + -DK[20];
-                joints[1] = k2;
-                joints[4] = C + -DK[26];
-                joints[2] = q13_idx_2;
-                joints[5] = make_sqrt + (-DK[32] + M_PI);
-                make_sqrt = joints[5];
-                if (joints[5] > 3.1415926535897931)
-                {
-                    make_sqrt = joints[5] - M_PI * 2;
-                }
-                else
-                {
-                    if (joints[5] <= -M_PI)
-                    {
-                        make_sqrt = joints[5] + M_PI * 2;
-                    }
-                }
-
-                joints[5] = make_sqrt;
-                for (i0 = 0; i0 < 6; i0++)
-                {
-                    joints[i0] = DK[60 + i0] * (joints[i0] * 180.0 / M_PI);
-                }
-
-                *nsol = 1.0;
-            }
-            else
-            {
-                for (i = 0; i < 6; i++)
-                {
-                    joints[i] = 0.0;
-                }
-
-                *nsol = 0;
-            }
-        }
-    }
-    /* #endregion */
-
-    /* #region ROBOT DATA VARS*/
-    /// Custom robot base (user frame)
-    Matrix4x4 Robot_BaseFrame = {1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};
-
-    /// Custom robot tool (tool frame, end of arm tool or TCP)
-    Matrix4x4 Robot_ToolFrame = {1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};
-
-    /// Robot parameters
-    /// All robot data is held in a large array
-    tRobot Robot_Data = {0};
-
-    // These global variable are also pointers, allowing to put the variables inside the Robot_Data
-    /// DHM table
-    float *Robot_Kin_DHM_Table = Robot_Data + 0 * Table_Size;
-
-    /// xyzwpr of the base
-    float *Robot_Kin_Base = Robot_Data + 6 * Table_Size;
-
-    /// xyzwpr of the tool
-    float *Robot_Kin_Tool = Robot_Data + 7 * Table_Size;
-
-    /// Robot lower limits
-    float *Robot_JointLimits_Upper = Robot_Data + 8 * Table_Size;
-
-    /// Robot upper limits
-    float *Robot_JointLimits_Lower = Robot_Data + 9 * Table_Size;
-
-    /// Robot axis senses
-    float *Robot_Senses = Robot_Data + 10 * Table_Size;
-
-    // A value mappings
-    float *Robot_Kin_DHM_L1 = Robot_Kin_DHM_Table + 0 * Table_Size;
-    float *Robot_Kin_DHM_L2 = Robot_Kin_DHM_Table + 1 * Table_Size;
-    float *Robot_Kin_DHM_L3 = Robot_Kin_DHM_Table + 2 * Table_Size;
-    float *Robot_Kin_DHM_L4 = Robot_Kin_DHM_Table + 3 * Table_Size;
-    float *Robot_Kin_DHM_L5 = Robot_Kin_DHM_Table + 4 * Table_Size;
-    float *Robot_Kin_DHM_L6 = Robot_Kin_DHM_Table + 5 * Table_Size;
-
-    float &Robot_Kin_DHM_A2(Robot_Kin_DHM_Table[1 * Table_Size + 1]);
-    float &Robot_Kin_DHM_A3(Robot_Kin_DHM_Table[2 * Table_Size + 1]);
-    float &Robot_Kin_DHM_A4(Robot_Kin_DHM_Table[3 * Table_Size + 1]);
-
-    // D value mappings
-    float &Robot_Kin_DHM_D1(Robot_Kin_DHM_Table[0 * Table_Size + 3]);
-    float &Robot_Kin_DHM_D2(Robot_Kin_DHM_Table[1 * Table_Size + 3]);
-    float &Robot_Kin_DHM_D4(Robot_Kin_DHM_Table[3 * Table_Size + 3]);
-    float &Robot_Kin_DHM_D6(Robot_Kin_DHM_Table[5 * Table_Size + 3]);
-
-    // Theta value mappings (mastering)
-    float &Robot_Kin_DHM_Theta1(Robot_Kin_DHM_Table[0 * Table_Size + 2]);
-    float &Robot_Kin_DHM_Theta2(Robot_Kin_DHM_Table[1 * Table_Size + 2]);
-    float &Robot_Kin_DHM_Theta3(Robot_Kin_DHM_Table[2 * Table_Size + 2]);
-    float &Robot_Kin_DHM_Theta4(Robot_Kin_DHM_Table[3 * Table_Size + 2]);
-    float &Robot_Kin_DHM_Theta5(Robot_Kin_DHM_Table[4 * Table_Size + 2]);
-    float &Robot_Kin_DHM_Theta6(Robot_Kin_DHM_Table[5 * Table_Size + 2]);
-    /* #endregion */
-
-    void robot_data_reset()
-    {
-        // Reset user base and tool frames
-        Matrix_Eye(Robot_BaseFrame);
-        Matrix_Eye(Robot_ToolFrame);
-
-        // Reset internal base frame and tool frames
-        for (int i = 0; i < 6; i++)
-        {
-            Robot_Kin_Base[i] = 0.0;
-        }
-
-        // Reset joint senses and joint limits
-        for (int i = 0; i < ROBOT_nDOFs; i++)
-        {
-            Robot_Senses[i] = +1.0;
-        }
-    }
-
-    template <typename T>
-    bool robot_joints_valid(const T joints[ROBOT_nDOFs])
-    {
-        for (int i = 0; i < ROBOT_nDOFs; i++)
-        {
-            if (joints[i] < Robot_JointLimits_Lower[i] || joints[i] > Robot_JointLimits_Upper[i])
-            {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    // DENAVIT HARTENBERG PARAMETERS SAME AS ROBODK
-    float *DHparams[];
+    // // DENAVIT HARTENBERG PARAMETERS SAME AS ROBODK
+    // float *DHparams[];
 
     bool KinematicFaultStatus;
     bool AxisFaultStatus;
-
 
     float JangleOut[ROBOT_nDOFs];
     float JangleIn[ROBOT_nDOFs];
@@ -1179,46 +1182,46 @@ private:
     float joints_estimate[ROBOT_nDOFs];
     float SolutionMatrix[ROBOT_nDOFs][4];
 
-    void robot_data_grab()
-    {
-        robot_data_reset();
+    // void robot_data_grab()
+    // {
+    //     robot_data_reset();
 
-        // Alpha parameters
-        Robot_Kin_DHM_L1[DHM_Alpha] = DHparams[0][1] * M_PI / 180;
-        Robot_Kin_DHM_L2[DHM_Alpha] = DHparams[1][1] * M_PI / 180;
-        Robot_Kin_DHM_L3[DHM_Alpha] = DHparams[2][1] * M_PI / 180;
-        Robot_Kin_DHM_L4[DHM_Alpha] = DHparams[3][1] * M_PI / 180;
-        Robot_Kin_DHM_L5[DHM_Alpha] = DHparams[4][1] * M_PI / 180;
-        Robot_Kin_DHM_L6[DHM_Alpha] = DHparams[5][1] * M_PI / 180;
+    //     // Alpha parameters
+    //     Robot_Kin_DHM_L1[DHM_Alpha] = DHparams[0][1] * M_PI / 180;
+    //     Robot_Kin_DHM_L2[DHM_Alpha] = DHparams[1][1] * M_PI / 180;
+    //     Robot_Kin_DHM_L3[DHM_Alpha] = DHparams[2][1] * M_PI / 180;
+    //     Robot_Kin_DHM_L4[DHM_Alpha] = DHparams[3][1] * M_PI / 180;
+    //     Robot_Kin_DHM_L5[DHM_Alpha] = DHparams[4][1] * M_PI / 180;
+    //     Robot_Kin_DHM_L6[DHM_Alpha] = DHparams[5][1] * M_PI / 180;
 
-        // Theta parameters
-        Robot_Kin_DHM_L1[DHM_Theta] = DHparams[0][0] * M_PI / 180;
-        Robot_Kin_DHM_L2[DHM_Theta] = DHparams[1][0] * M_PI / 180;
-        Robot_Kin_DHM_L3[DHM_Theta] = DHparams[2][0] * M_PI / 180;
-        Robot_Kin_DHM_L4[DHM_Theta] = DHparams[3][0] * M_PI / 180;
-        Robot_Kin_DHM_L5[DHM_Theta] = DHparams[4][0] * M_PI / 180;
-        Robot_Kin_DHM_L6[DHM_Theta] = DHparams[5][0] * M_PI / 180;
+    //     // Theta parameters
+    //     Robot_Kin_DHM_L1[DHM_Theta] = DHparams[0][0] * M_PI / 180;
+    //     Robot_Kin_DHM_L2[DHM_Theta] = DHparams[1][0] * M_PI / 180;
+    //     Robot_Kin_DHM_L3[DHM_Theta] = DHparams[2][0] * M_PI / 180;
+    //     Robot_Kin_DHM_L4[DHM_Theta] = DHparams[3][0] * M_PI / 180;
+    //     Robot_Kin_DHM_L5[DHM_Theta] = DHparams[4][0] * M_PI / 180;
+    //     Robot_Kin_DHM_L6[DHM_Theta] = DHparams[5][0] * M_PI / 180;
 
-        // A parameters
-        Robot_Kin_DHM_L1[DHM_A] = DHparams[0][3];
-        Robot_Kin_DHM_L2[DHM_A] = DHparams[1][3];
-        Robot_Kin_DHM_L3[DHM_A] = DHparams[2][3];
-        Robot_Kin_DHM_L4[DHM_A] = DHparams[3][3];
-        Robot_Kin_DHM_L5[DHM_A] = DHparams[4][3];
-        Robot_Kin_DHM_L6[DHM_A] = DHparams[5][3];
+    //     // A parameters
+    //     Robot_Kin_DHM_L1[DHM_A] = DHparams[0][3];
+    //     Robot_Kin_DHM_L2[DHM_A] = DHparams[1][3];
+    //     Robot_Kin_DHM_L3[DHM_A] = DHparams[2][3];
+    //     Robot_Kin_DHM_L4[DHM_A] = DHparams[3][3];
+    //     Robot_Kin_DHM_L5[DHM_A] = DHparams[4][3];
+    //     Robot_Kin_DHM_L6[DHM_A] = DHparams[5][3];
 
-        // D parameters
-        Robot_Kin_DHM_L1[DHM_D] = DHparams[0][2];
-        Robot_Kin_DHM_L2[DHM_D] = DHparams[1][2];
-        Robot_Kin_DHM_L3[DHM_D] = DHparams[2][2];
-        Robot_Kin_DHM_L4[DHM_D] = DHparams[3][2];
-        Robot_Kin_DHM_L5[DHM_D] = DHparams[4][2];
-        Robot_Kin_DHM_L6[DHM_D] = DHparams[5][2];
+    //     // D parameters
+    //     Robot_Kin_DHM_L1[DHM_D] = DHparams[0][2];
+    //     Robot_Kin_DHM_L2[DHM_D] = DHparams[1][2];
+    //     Robot_Kin_DHM_L3[DHM_D] = DHparams[2][2];
+    //     Robot_Kin_DHM_L4[DHM_D] = DHparams[3][2];
+    //     Robot_Kin_DHM_L5[DHM_D] = DHparams[4][2];
+    //     Robot_Kin_DHM_L6[DHM_D] = DHparams[5][2];
 
-        for (size_t i = 0; i < ROBOT_nDOFs; i++)
-        {
-            Robot_JointLimits_Lower[i] = robot.axis[i].LowerPoseLimit();
-            Robot_JointLimits_Upper[i] = robot.axis[i].UpperPoseLimit();
-        }
-    }
+    //     for (size_t i = 0; i < ROBOT_nDOFs; i++)
+    //     {
+    //         Robot_JointLimits_Lower[i] = robot.axis[i].LowerPoseLimit();
+    //         Robot_JointLimits_Upper[i] = robot.axis[i].UpperPoseLimit();
+    //     }
+    // }
 };

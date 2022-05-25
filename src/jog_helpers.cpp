@@ -1,1 +1,1 @@
-// Calculate goal potisions for jogging operrations
+// Calculate goal potisions for jogging operrations or waypoints during crc and arc moves
